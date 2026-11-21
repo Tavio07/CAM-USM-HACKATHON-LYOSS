@@ -1,0 +1,413 @@
+{
+    "simulado":  true,
+    "nodos":  [
+                  {
+                      "id":  "entrada",
+                      "nombre":  "Entrada Principal"
+                  },
+                  {
+                      "id":  "patio",
+                      "nombre":  "Patio Central"
+                  },
+                  {
+                      "id":  "hall-a",
+                      "nombre":  "Hall Edificio A"
+                  },
+                  {
+                      "id":  "a101",
+                      "nombre":  "Sala A-101"
+                  },
+                  {
+                      "id":  "ascensor-m",
+                      "nombre":  "Ascensor Edificio M"
+                  },
+                  {
+                      "id":  "m2",
+                      "nombre":  "Piso 2 Edificio M"
+                  },
+                  {
+                      "id":  "biblioteca",
+                      "nombre":  "Biblioteca"
+                  },
+                  {
+                      "id":  "casino",
+                      "nombre":  "Casino"
+                  },
+                  {
+                      "id":  "pasillo",
+                      "nombre":  "Pasillo techado"
+                  },
+                  {
+                      "id":  "escalera-m",
+                      "nombre":  "Escalera Edificio M"
+                  },
+                  {
+                      "id":  "hall-m",
+                      "nombre":  "Hall Edificio M"
+                  },
+                  {
+                      "id":  "acceso-b",
+                      "nombre":  "Acceso Biblioteca"
+                  },
+                  {
+                      "id":  "p4",
+                      "nombre":  "Edificio P · Piso 4"
+                  },
+                  {
+                      "id":  "p-subsuelo",
+                      "nombre":  "Edificio P · Piso −1"
+                  },
+                  {
+                      "id":  "p1",
+                      "nombre":  "Edificio P · Piso 1"
+                  },
+                  {
+                      "id":  "tunel-fin",
+                      "nombre":  "Túnel subterráneo · Final"
+                  },
+                  {
+                      "id":  "salida-p",
+                      "nombre":  "Edificio P · Puerta principal"
+                  },
+                  {
+                      "id":  "entrada-placeres",
+                      "nombre":  "Entrada Placeres"
+                  },
+                  {
+                      "id":  "edificio-c",
+                      "nombre":  "Edificio C · Exterior"
+                  }
+              ],
+    "aristas":  [
+                    {
+                        "id":  "t1",
+                        "origen":  "entrada",
+                        "destino":  "patio",
+                        "distancia":  25,
+                        "escalones":  0,
+                        "pendiente":  2,
+                        "esTechado":  false,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Cruza el acceso abierto siguiendo el borde del muro hasta el acceso opuesto.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "t2",
+                        "origen":  "entrada",
+                        "destino":  "hall-a",
+                        "distancia":  45,
+                        "escalones":  0,
+                        "pendiente":  3,
+                        "esTechado":  true,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Sigue el pasillo cubierto junto al muro.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "t3",
+                        "origen":  "hall-a",
+                        "destino":  "a101",
+                        "distancia":  12,
+                        "escalones":  0,
+                        "pendiente":  0,
+                        "esTechado":  true,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Busca el letrero A-101 junto al marco de la puerta.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "t4",
+                        "acceso":  "pasillo-a",
+                        "origen":  "hall-a",
+                        "destino":  "pasillo",
+                        "distancia":  30,
+                        "escalones":  0,
+                        "pendiente":  2,
+                        "esTechado":  true,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Sigue la baranda por el corredor cubierto.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  true
+                    },
+                    {
+                        "id":  "t5",
+                        "origen":  "patio",
+                        "destino":  "pasillo",
+                        "distancia":  18,
+                        "escalones":  0,
+                        "pendiente":  3,
+                        "esTechado":  false,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Cruza la explanada por el borde de la baranda.",
+                        "iluminado":  false,
+                        "esSimple":  false,
+                        "pasamanos":  true
+                    },
+                    {
+                        "id":  "t6",
+                        "origen":  "pasillo",
+                        "destino":  "hall-m",
+                        "distancia":  17,
+                        "escalones":  0,
+                        "pendiente":  1,
+                        "esTechado":  true,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Avanza bajo techo junto a la baranda.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  true
+                    },
+                    {
+                        "id":  "t7",
+                        "origen":  "hall-m",
+                        "destino":  "ascensor-m",
+                        "distancia":  9,
+                        "escalones":  0,
+                        "pendiente":  0,
+                        "esTechado":  true,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Sigue la señal de ascensor junto al muro.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "t8",
+                        "origen":  "ascensor-m",
+                        "destino":  "m2",
+                        "distancia":  5,
+                        "escalones":  0,
+                        "pendiente":  0,
+                        "esTechado":  true,
+                        "requiereAscensor":  "ascensor-m",
+                        "instruccionHumana":  "Usa el ascensor entre el hall y el piso 2.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "t9",
+                        "origen":  "hall-m",
+                        "destino":  "escalera-m",
+                        "distancia":  13,
+                        "escalones":  0,
+                        "pendiente":  0,
+                        "esTechado":  true,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Sigue el muro hasta el descanso inferior.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "t10",
+                        "origen":  "escalera-m",
+                        "destino":  "m2",
+                        "distancia":  16,
+                        "escalones":  28,
+                        "pendiente":  0,
+                        "esTechado":  true,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Usa la escalera con pasamanos entre ambos niveles.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  true
+                    },
+                    {
+                        "id":  "t11",
+                        "origen":  "pasillo",
+                        "destino":  "acceso-b",
+                        "distancia":  21,
+                        "escalones":  0,
+                        "pendiente":  1,
+                        "esTechado":  true,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Sigue el corredor hasta la entrada señalizada.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "t12",
+                        "origen":  "acceso-b",
+                        "destino":  "biblioteca",
+                        "distancia":  8,
+                        "escalones":  0,
+                        "pendiente":  0,
+                        "esTechado":  true,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Pasa por la puerta señalizada hacia el otro lado.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "t13",
+                        "origen":  "pasillo",
+                        "destino":  "casino",
+                        "distancia":  29,
+                        "escalones":  0,
+                        "pendiente":  2,
+                        "esTechado":  false,
+                        "requiereAscensor":  null,
+                        "instruccionHumana":  "Sigue el sendero exterior junto al borde pavimentado.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "p-escalera-subsuelo",
+                        "pisosRecorridos":  5,
+                        "origen":  "p4",
+                        "destino":  "p-subsuelo",
+                        "distancia":  36,
+                        "escalones":  80,
+                        "pendiente":  "baja",
+                        "esTechado":  true,
+                        "requiereAscensor":  false,
+                        "instruccionHumana":  "Baja por la escalera principal del Edificio P hasta el piso −1.",
+                        "instruccionRegreso":  "Sube por la escalera principal del Edificio P hasta el piso 4.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false,
+                        "riesgoLluvia":  "alto"
+                    },
+                    {
+                        "id":  "p-ascensor-subsuelo",
+                        "pisosRecorridos":  5,
+                        "origen":  "p4",
+                        "destino":  "p-subsuelo",
+                        "distancia":  5,
+                        "escalones":  0,
+                        "pendiente":  "baja",
+                        "esTechado":  true,
+                        "requiereAscensor":  "ascensor-p",
+                        "instruccionHumana":  "Toma el ascensor del Edificio P hasta el piso −1.",
+                        "instruccionRegreso":  "Toma el ascensor del Edificio P hasta el piso 4.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "p-escalera-p1",
+                        "pisosRecorridos":  3,
+                        "origen":  "p4",
+                        "destino":  "p1",
+                        "distancia":  27,
+                        "escalones":  48,
+                        "pendiente":  "baja",
+                        "esTechado":  true,
+                        "requiereAscensor":  false,
+                        "instruccionHumana":  "Baja por una escalera del Edificio P hasta el primer piso.",
+                        "instruccionRegreso":  "Sube por una escalera del Edificio P hasta el cuarto piso.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "p-ascensor-p1",
+                        "pisosRecorridos":  3,
+                        "origen":  "p4",
+                        "destino":  "p1",
+                        "distancia":  4,
+                        "escalones":  0,
+                        "pendiente":  "baja",
+                        "esTechado":  true,
+                        "requiereAscensor":  "ascensor-p",
+                        "instruccionHumana":  "Toma el ascensor del Edificio P hasta el primer piso.",
+                        "instruccionRegreso":  "Toma el ascensor del Edificio P hasta el cuarto piso.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "p-tunel",
+                        "origen":  "p-subsuelo",
+                        "destino":  "tunel-fin",
+                        "distancia":  40,
+                        "escalones":  0,
+                        "pendiente":  "baja",
+                        "esTechado":  true,
+                        "requiereAscensor":  false,
+                        "instruccionHumana":  "Sigue el túnel subterráneo hasta la escalera corta del final.",
+                        "instruccionRegreso":  "Sigue el túnel subterráneo hasta el piso −1 del Edificio P.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false,
+                        "riesgoLluvia":  "alto",
+                        "avisoLluvia":  "Túnel resbaloso por acumulación de agua"
+                    },
+                    {
+                        "id":  "tunel-escalones-c",
+                        "origen":  "tunel-fin",
+                        "destino":  "edificio-c",
+                        "distancia":  5,
+                        "escalones":  4,
+                        "pendiente":  "baja",
+                        "esTechado":  true,
+                        "requiereAscensor":  false,
+                        "instruccionHumana":  "Sube la escalera corta al final del túnel. Llegarás frente al Edificio C.",
+                        "instruccionRegreso":  "Baja la escalera corta frente al Edificio C para entrar al túnel.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false,
+                        "riesgoLluvia":  "alto"
+                    },
+                    {
+                        "id":  "p-puerta",
+                        "origen":  "p1",
+                        "destino":  "salida-p",
+                        "distancia":  14,
+                        "escalones":  0,
+                        "pendiente":  "baja",
+                        "esTechado":  true,
+                        "requiereAscensor":  false,
+                        "instruccionHumana":  "Sal por la puerta principal del Edificio P.",
+                        "instruccionRegreso":  "Entra por la puerta principal del Edificio P.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false
+                    },
+                    {
+                        "id":  "p-cruce-placeres",
+                        "origen":  "salida-p",
+                        "destino":  "entrada-placeres",
+                        "distancia":  28,
+                        "escalones":  0,
+                        "pendiente":  "baja",
+                        "esTechado":  false,
+                        "requiereAscensor":  false,
+                        "instruccionHumana":  "Cruza la calle y vuelve a entrar a la universidad por la Entrada Placeres.",
+                        "instruccionRegreso":  "Sal por la Entrada Placeres y cruza la calle hacia el Edificio P.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false,
+                        "riesgoLluvia":  "moderado",
+                        "avisoLluvia":  "Cruce de calle expuesto a la lluvia"
+                    },
+                    {
+                        "id":  "placeres-c",
+                        "origen":  "entrada-placeres",
+                        "destino":  "edificio-c",
+                        "distancia":  52,
+                        "escalones":  0,
+                        "pendiente":  "baja",
+                        "esTechado":  false,
+                        "requiereAscensor":  false,
+                        "instruccionHumana":  "Gira a la derecha y avanza hasta quedar frente al Edificio C.",
+                        "instruccionRegreso":  "Desde el exterior del Edificio C, sigue el camino hacia la Entrada Placeres.",
+                        "iluminado":  true,
+                        "esSimple":  true,
+                        "pasamanos":  false,
+                        "riesgoLluvia":  "moderado",
+                        "avisoLluvia":  "Tramo exterior expuesto a la lluvia"
+                    }
+                ]
+}

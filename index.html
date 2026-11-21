@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101f37">
+  <title>Campus sin barreras | UTFSM</title>
+  <link rel="stylesheet" href="./campus.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <header>
+    <div class="top"><span>UTFSM · CASA CENTRAL</span><button id="contraste" type="button" aria-pressed="false">Alto contraste</button></div>
+    <h1>Campus sin barreras</h1>
+    <p>Encuentra tu ruta por el campus.</p>
+  </header>
+  <main>
+    <label for="vista">Vista</label>
+    <select id="vista"><option value="estudiante">Estudiante</option><option value="apoyo">Red de apoyo</option></select>
+    <p id="estado-ayuda" role="status"></p>
+    <div id="vista-estudiante">
+    <p class="nota">Recorrido P–C levantado por el equipo. Distancias, escalones y pendientes estimados.</p>
+    <p id="aviso" role="status">Cargando puntos del campus…</p>
+    <form id="ruta" class="panel">
+      <h2>Tu recorrido</h2>
+      <label for="origen">Desde dónde sales</label>
+      <select id="origen" required><option value="">Selecciona el origen</option></select>
+      <button id="escanear" type="button" class="secundario" disabled aria-controls="camara" aria-expanded="false">Escanear QR del punto</button>
+      <div id="camara" hidden>
+        <video id="video" playsinline muted aria-label="Vista previa de la cámara"></video>
+        <button id="cerrar" type="button" class="secundario">Cerrar cámara</button>
+      </div>
+      <label for="destino">Adónde vas</label>
+      <select id="destino" required><option value="">Selecciona el destino</option></select>
+      <label for="perfil">¿Qué necesitas evitar hoy?</label>
+      <select id="perfil" required><option value="">Selecciona un perfil</option></select>
+      <button id="calcular" type="submit" disabled>Calcular ruta</button>
+    </form>
+    <section id="resultado" class="panel" hidden aria-labelledby="estado">
+      <h2 id="estado" tabindex="-1"></h2>
+      <p id="motivo"></p>
+      <p id="complejidad" hidden></p>
+      <figure id="mapa" hidden>
+        <svg viewBox="0 0 330 300" role="img" aria-label="Mapa esquemático del Edificio P al Edificio C"><g id="tramos-mapa"></g></svg>
+        <figcaption id="descripcion-mapa"></figcaption>
+      </figure>
+      <p id="recomienda-ayuda" hidden><strong>Te recomendamos pedir ayuda para este recorrido.</strong></p>
+      <button id="pedir-ayuda" type="button" hidden>Pedir ayuda personalizada</button>
+      <ol id="pasos"></ol>
+    </section>
+    <div id="mi-solicitud" aria-live="polite"></div>
+    <details class="panel">
+      <summary>Crear QR del punto seleccionado</summary>
+      <p>Selecciona un origen y genera el código para abrir esta página desde otro dispositivo.</p>
+      <button id="generar" class="secundario" type="button" disabled>Generar QR</button>
+      <div id="codigo" role="img" aria-label="Código QR del punto seleccionado" hidden></div>
+      <p><a id="enlace" hidden>Abrir enlace del punto</a></p>
+      <p id="nota-qr" class="nota" hidden>Para escanear desde otro teléfono, genera el código en la versión publicada por HTTPS.</p>
+    </details>
+    </div>
+    <section id="vista-apoyo" class="panel" hidden>
+      <h2>Red de apoyo</h2>
+      <p class="nota">Perfiles de demostración.</p>
+      <label for="perfil-apoyo">Perfil de apoyo</label>
+      <select id="perfil-apoyo" required><option value="">Selecciona un perfil</option></select>
+      <div id="cola-ayuda" aria-live="polite"></div>
+    </section>
+  </main>
+</body>
+</html>
