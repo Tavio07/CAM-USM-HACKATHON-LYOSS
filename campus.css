@@ -117,3 +117,74 @@ h1, h2, h3 { font-family: Montserrat, system-ui, sans-serif; }
 .tarjeta-historial { border: 1px solid #dee2e6; border-radius: 8px; margin-block: 8px; padding: 10px; }
 .tarjeta-historial h3 { margin: 0; font-size: 1rem; }
 .tarjeta-historial p { margin-block: 4px; }
+
+
+:root {
+  --bg-campus: url("https://upload.wikimedia.org/wikipedia/commons/d/dc/Central_Building%2C_Universidad_T%C3%A9cnica_Federico_Santa_Mar%C3%ADa%2C_Valpara%C3%ADso%2C_Chile.jpg");
+  --azul-profundo: #00335c;
+  --azul-usm: #004b85;
+  --oro-usm: #f7a800;
+  font-family: Inter, system-ui, sans-serif;
+}
+body {
+  background: linear-gradient(180deg, #edf3f8f2, #f4f6f9 420px), var(--bg-campus) center 55px / 430px auto no-repeat, #f4f6f9;
+}
+h1, h2, h3, button { font-family: "Plus Jakarta Sans", Inter, system-ui, sans-serif; }
+input, select, textarea { font-family: inherit; }
+.barra {
+  min-height: 62px;
+  gap: 5px;
+  padding: 8px clamp(7px, 2.5vw, 11px);
+  background: linear-gradient(105deg, var(--azul-profundo), var(--azul-usm));
+  box-shadow: 0 4px 14px #00284725;
+}
+.barra h1 { font-size: clamp(1rem, 4.8vw, 1.18rem); font-weight: 800; letter-spacing: -.04em; }
+.logo { flex: 0 0 86px; }
+.sesion-activa { align-items: center; gap: 5px; }
+.control-cuenta { height: 44px; min-height: 44px; flex-shrink: 0; background: #002c5280; font-weight: 700; }
+#abrir-bandeja { flex-shrink: 1; min-width: 0; }
+#nombre-cuenta { min-width: 0; }
+.bandeja-cuenta { width: min(258px, calc(100vw - 18px)); box-shadow: 0 12px 30px #0028472e; }
+.bandeja-cuenta:not([hidden]) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: 3px; }
+.bandeja-cuenta button { min-height: 44px; height: 44px; padding: 5px 7px; font-size: .79rem; }
+#abrir-perfil, #abrir-historial { grid-column: 1 / -1; font-size: .875rem; }
+.bandeja-cuenta #cerrar-sesion, .bandeja-cuenta #cambiar-seccion { border-top: 1px solid #dee2e6; border-radius: 0; }
+main { padding-inline: clamp(12px, 4vw, 18px); }
+.panel { border-color: #dce6ef; border-radius: 14px; box-shadow: 0 4px 14px #00335c0c; }
+.acceso {
+  margin-top: 9px;
+  padding: 148px 18px 20px;
+  background: #fff;
+  background-image: linear-gradient(155deg, #00335c4d, #004b857a), var(--bg-campus), linear-gradient(125deg, #00335c, #3778a6);
+  background-size: 100% 129px, 100% auto, 100% 129px;
+  background-position: top center;
+  background-repeat: no-repeat;
+  isolation: isolate;
+  position: relative;
+}
+.acceso::before { content: ""; position: absolute; z-index: -1; inset: 129px 0 0; background: #fff; border-radius: 0 0 14px 14px; }
+.acceso { overflow: hidden; }
+.campus-insignia { display: table; margin: 0 0 9px; padding: 5px 9px; border-radius: 99px; background: #fff0cb; color: #654500; font-size: .75rem; font-weight: 700; }
+.acceso h2 { font-size: clamp(1.35rem, 6vw, 1.66rem); letter-spacing: -.035em; margin-bottom: 7px; }
+.acceso .nota { margin-bottom: 16px; }
+.acceso form > button { margin-top: 15px; }
+#necesito-ayuda, #quiero-ayudar { display: flex; align-items: center; gap: 12px; text-align: left; min-height: 68px; padding: 9px 11px; border-radius: 11px; }
+#necesito-ayuda strong, #quiero-ayudar strong, #necesito-ayuda small, #quiero-ayudar small { display: block; }
+#necesito-ayuda small, #quiero-ayudar small { font: 500 .75rem Inter, system-ui, sans-serif; margin-top: 3px; }
+#quiero-ayudar { background: #f0f6fc; border-color: #bdd4e7; }
+.accion-icono { width: 35px; height: 35px; flex: 0 0 35px; display: grid; place-items: center; color: #00335c; background: #ffd982; border-radius: 9px; }
+.accion-icono svg { width: 21px; height: 21px; }
+.filtros details { border-color: #cbdceb; overflow: hidden; }
+.filtros summary { background: #f5f9fd; color: #00335c; }
+.filtros details[open] summary { background: #eaf3fb; }
+.filtros summary:focus-visible { outline-offset: -3px; }
+.fila-ranking { border-color: #dce6ef; border-radius: 11px; }
+.fila-ranking .posicion { min-width: 32px; text-align: center; }
+.fila-ranking[data-posicion="1"] .posicion { background: #ffe3a3; color: #644000; }
+.fila-ranking[data-posicion="2"] .posicion { background: #e6ecf3; color: #35475a; }
+.fila-ranking[data-posicion="3"] .posicion { background: #f4ddca; color: #693d20; }
+.titulo-ranking-marca { display: none; }
+#panel-cuenta:has(.ranking) .titulo-ranking-marca { display: block; }
+#panel-cuenta:has(.ranking) #titulo-cuenta { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.credito-campus { font-size: .7rem; color: #46576b; margin-top: 18px; }
+.credito-campus a { color: #004b85; }

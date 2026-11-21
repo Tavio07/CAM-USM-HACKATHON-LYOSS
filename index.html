@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#004B85">
-  <title>CAE USM · Movilidad en Casa Central</title>
+  <title>CAM USM · Movilidad en Casa Central</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&amp;family=Plus+Jakarta+Sans:wght@500;600;700&amp;display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap">
   <link rel="stylesheet" href="./campus.css">
   <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module" src="./app.mjs"></script>
 </head>
 <body>
   <header class="barra">
-    <h1>CAE <span>USM</span></h1>
+    <h1>CAM <span>USM</span></h1>
     <span class="logo"><img src="./logo-usm.png" alt="Universidad Técnica Federico Santa María"></span>
     <div id="sesion-activa" class="sesion-activa" hidden>
       <button id="abrir-ranking" class="control-cuenta" type="button" aria-haspopup="dialog">
@@ -26,13 +26,14 @@
       <nav id="bandeja-cuenta" class="bandeja-cuenta" aria-label="Información de cuenta" hidden>
         <button id="abrir-perfil" type="button" aria-haspopup="dialog">Ver mi perfil</button>
         <button id="abrir-historial" type="button" aria-haspopup="dialog">Historial de ayudas</button>
-        <button id="cambiar-seccion" type="button">Cambiar modo</button>
+        <button id="cambiar-seccion" type="button">Cambiar sección</button>
         <button id="cerrar-sesion" type="button">Cerrar sesión</button>
       </nav>
     </div>
   </header>
   <main>
     <section id="inicio-sesion" class="panel acceso" aria-labelledby="titulo-login">
+      <p class="campus-insignia">Campus Casa Central · Valparaíso</p>
       <h2 id="titulo-login" tabindex="-1">Inicia sesión USM</h2>
       <p class="nota">Acceso institucional simulado para la demo.</p>
       <form id="login">
@@ -44,10 +45,11 @@
       </form>
     </section>
     <section id="elegir-seccion" class="panel acceso" hidden aria-labelledby="saludo">
+      <p class="campus-insignia">Comunidad Sansana</p>
       <h2 id="saludo" tabindex="-1"></h2>
       <p>¿Qué harás hoy?</p>
-      <button id="necesito-ayuda" class="principal" type="button">Pedir ayuda</button>
-      <button id="quiero-ayudar" class="opcion-seccion" type="button">Dar ayuda</button>
+      <button id="necesito-ayuda" class="principal" type="button"><span class="accion-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span><span><strong>Necesito ayuda</strong><small>Busca una ruta o pide acompañamiento</small></span></button>
+      <button id="quiero-ayudar" class="opcion-seccion" type="button"><span class="accion-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20S3 15 3 9.5a4.5 4.5 0 0 1 9-1 4.5 4.5 0 0 1 9 1C21 15 12 20 12 20Z"/></svg></span><span><strong>Quiero ayudar</strong><small>Acompaña a alguien en el campus</small></span></button>
     </section>
     <p id="conexion" class="nota" role="status"></p>
     <p id="error-asistencia" role="alert"></p>
@@ -149,13 +151,15 @@
         </div>
       </dialog>
     </section>
-    <dialog id="panel-cuenta" aria-labelledby="titulo-cuenta">
+    <dialog id="panel-cuenta" aria-label="Cuenta CAM USM">
       <div class="encabezado-panel-cuenta">
         <h2 id="titulo-cuenta" tabindex="-1"></h2>
+        <h2 class="titulo-ranking-marca">Ranking de Ayudantes CAM USM</h2>
         <button id="cerrar-panel-cuenta" type="button" aria-label="Cerrar panel">×</button>
       </div>
       <div id="contenido-cuenta"></div>
     </dialog>
+    <footer class="credito-campus">Foto de Casa Central por <a href="https://commons.wikimedia.org/wiki/File:Central_Building,_Universidad_T%C3%A9cnica_Federico_Santa_Mar%C3%ADa,_Valpara%C3%ADso,_Chile.jpg">Alexxxos</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a></footer>
   </main>
 </body>
 </html>
