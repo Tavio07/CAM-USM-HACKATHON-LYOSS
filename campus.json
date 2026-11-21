@@ -264,6 +264,7 @@
                     },
                     {
                         "id":  "p-escalera-subsuelo",
+                        "via":  "tunel",
                         "pisosRecorridos":  5,
                         "origen":  "p4",
                         "destino":  "p-subsuelo",
@@ -281,6 +282,7 @@
                     },
                     {
                         "id":  "p-ascensor-subsuelo",
+                        "via":  "tunel",
                         "pisosRecorridos":  5,
                         "origen":  "p4",
                         "destino":  "p-subsuelo",
@@ -297,6 +299,7 @@
                     },
                     {
                         "id":  "p-escalera-p1",
+                        "via":  "placeres",
                         "pisosRecorridos":  3,
                         "origen":  "p4",
                         "destino":  "p1",
@@ -313,6 +316,7 @@
                     },
                     {
                         "id":  "p-ascensor-p1",
+                        "via":  "placeres",
                         "pisosRecorridos":  3,
                         "origen":  "p4",
                         "destino":  "p1",
@@ -329,6 +333,7 @@
                     },
                     {
                         "id":  "p-tunel",
+                        "via":  "tunel",
                         "origen":  "p-subsuelo",
                         "destino":  "tunel-fin",
                         "distancia":  40,
@@ -346,6 +351,7 @@
                     },
                     {
                         "id":  "tunel-escalones-c",
+                        "via":  "tunel",
                         "origen":  "tunel-fin",
                         "destino":  "edificio-c",
                         "distancia":  5,
@@ -362,6 +368,7 @@
                     },
                     {
                         "id":  "p-puerta",
+                        "via":  "placeres",
                         "origen":  "p1",
                         "destino":  "salida-p",
                         "distancia":  14,
@@ -377,6 +384,7 @@
                     },
                     {
                         "id":  "p-cruce-placeres",
+                        "via":  "placeres",
                         "origen":  "salida-p",
                         "destino":  "entrada-placeres",
                         "distancia":  28,
@@ -394,6 +402,7 @@
                     },
                     {
                         "id":  "placeres-c",
+                        "via":  "placeres",
                         "origen":  "entrada-placeres",
                         "destino":  "edificio-c",
                         "distancia":  52,

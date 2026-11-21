@@ -3,69 +3,74 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101f37">
-  <title>Campus sin barreras | UTFSM</title>
+  <meta name="theme-color" content="#004B85">
+  <title>CAE USM · Movilidad en Casa Central</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="./campus.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module" src="./app.mjs"></script>
 </head>
 <body>
-  <header>
-    <div class="top"><span>UTFSM · CASA CENTRAL</span><button id="contraste" type="button" aria-pressed="false">Alto contraste</button></div>
-    <h1>Campus sin barreras</h1>
-    <p>Encuentra tu ruta por el campus.</p>
+  <header class="barra">
+    <h1>CAE <span>USM</span></h1>
+    <span class="logo"><img src="./logo-usm.png" alt="Universidad Técnica Federico Santa María"></span>
   </header>
   <main>
-    <label for="vista">Vista</label>
-    <select id="vista"><option value="estudiante">Estudiante</option><option value="apoyo">Red de apoyo</option></select>
-    <p id="estado-ayuda" role="status"></p>
-    <div id="vista-estudiante">
-    <p class="nota">Recorrido P–C levantado por el equipo. Distancias, escalones y pendientes estimados.</p>
-    <p id="aviso" role="status">Cargando puntos del campus…</p>
-    <form id="ruta" class="panel">
-      <h2>Tu recorrido</h2>
-      <label for="origen">Desde dónde sales</label>
-      <select id="origen" required><option value="">Selecciona el origen</option></select>
-      <button id="escanear" type="button" class="secundario" disabled aria-controls="camara" aria-expanded="false">Escanear QR del punto</button>
-      <div id="camara" hidden>
-        <video id="video" playsinline muted aria-label="Vista previa de la cámara"></video>
-        <button id="cerrar" type="button" class="secundario">Cerrar cámara</button>
-      </div>
-      <label for="destino">Adónde vas</label>
-      <select id="destino" required><option value="">Selecciona el destino</option></select>
-      <label for="perfil">¿Qué necesitas evitar hoy?</label>
-      <select id="perfil" required><option value="">Selecciona un perfil</option></select>
-      <button id="calcular" type="submit" disabled>Calcular ruta</button>
+    <form id="viaje">
+      <section class="panel" aria-labelledby="titulo-limitaciones">
+        <h2 id="titulo-limitaciones">Limitaciones y condiciones</h2>
+        <fieldset><legend>Físicas</legend><div id="fisicas" class="opciones"></div></fieldset>
+        <fieldset><legend>Entorno y clima</legend><div id="entorno" class="opciones"></div></fieldset>
+      </section>
+      <section class="panel" aria-labelledby="titulo-origen">
+        <h2 id="titulo-origen">¿Dónde estás?</h2>
+        <div id="mapa-origen" class="mapa" role="region" aria-label="Mapa de selección de origen"></div>
+        <label for="origen">Origen</label>
+        <select id="origen" required><option value="">Selecciona tu ubicación</option></select>
+        <p id="aviso-origen" class="nota" role="status"></p>
+        <div id="grupo-piso-origen" hidden>
+          <label for="piso-origen">Piso de origen</label>
+          <select id="piso-origen"></select>
+        </div>
+        <label for="referencia-origen">Referencia de origen <span>Opcional</span></label>
+        <input id="referencia-origen" maxlength="140" placeholder="Ej. Frente a los ascensores">
+      </section>
+      <section class="panel" aria-labelledby="titulo-destino">
+        <h2 id="titulo-destino">¿A dónde vas?</h2>
+        <div id="mapa-destino" class="mapa" role="region" aria-label="Mapa de selección de destino"></div>
+        <label for="destino">Destino</label>
+        <select id="destino" required><option value="">Selecciona tu destino</option></select>
+        <div id="grupo-piso-destino" hidden>
+          <label for="piso-destino">Piso de destino</label>
+          <select id="piso-destino"></select>
+        </div>
+        <label for="referencia-destino">Referencia de destino <span>Opcional</span></label>
+        <input id="referencia-destino" maxlength="140" placeholder="Ej. Puerta lateral, cerca del patio">
+      </section>
+      <section class="panel">
+        <label for="comentarios">Comentarios extra <span>Opcional</span></label>
+        <textarea id="comentarios" rows="3" maxlength="400"></textarea>
+      </section>
+      <button class="principal" type="submit">Generar solicitud / Ver rutas</button>
     </form>
-    <section id="resultado" class="panel" hidden aria-labelledby="estado">
-      <h2 id="estado" tabindex="-1"></h2>
-      <p id="motivo"></p>
-      <p id="complejidad" hidden></p>
-      <figure id="mapa" hidden>
-        <svg viewBox="0 0 330 300" role="img" aria-label="Mapa esquemático del Edificio P al Edificio C"><g id="tramos-mapa"></g></svg>
-        <figcaption id="descripcion-mapa"></figcaption>
-      </figure>
-      <p id="recomienda-ayuda" hidden><strong>Te recomendamos pedir ayuda para este recorrido.</strong></p>
-      <button id="pedir-ayuda" type="button" hidden>Pedir ayuda personalizada</button>
-      <ol id="pasos"></ol>
-    </section>
-    <div id="mi-solicitud" aria-live="polite"></div>
-    <details class="panel">
-      <summary>Crear QR del punto seleccionado</summary>
-      <p>Selecciona un origen y genera el código para abrir esta página desde otro dispositivo.</p>
-      <button id="generar" class="secundario" type="button" disabled>Generar QR</button>
-      <div id="codigo" role="img" aria-label="Código QR del punto seleccionado" hidden></div>
-      <p><a id="enlace" hidden>Abrir enlace del punto</a></p>
-      <p id="nota-qr" class="nota" hidden>Para escanear desde otro teléfono, genera el código en la versión publicada por HTTPS.</p>
-    </details>
-    </div>
-    <section id="vista-apoyo" class="panel" hidden>
-      <h2>Red de apoyo</h2>
-      <p class="nota">Perfiles de demostración.</p>
-      <label for="perfil-apoyo">Perfil de apoyo</label>
-      <select id="perfil-apoyo" required><option value="">Selecciona un perfil</option></select>
-      <div id="cola-ayuda" aria-live="polite"></div>
+    <section id="resultados" hidden aria-labelledby="titulo-resultados">
+      <section class="panel">
+        <h2 id="titulo-resultados" tabindex="-1">Rutas alternativas</h2>
+        <p class="nota">Trazados y condiciones aproximados para la demo.</p>
+        <div id="mapa-rutas" class="mapa" role="region" aria-label="Mapa de rutas alternativas"></div>
+        <p id="aviso-rutas" role="status"></p>
+        <div id="alternativas"></div>
+      </section>
+      <section class="panel" aria-labelledby="titulo-ayuda">
+        <h2 id="titulo-ayuda">¿Prefieres pedir ayuda?</h2>
+        <p>Si ninguna opción te da seguridad, puedes solicitar acompañamiento.</p>
+        <button id="solicitar" class="principal ayuda" type="button">Generar Solicitud de Ayuda</button>
+      </section>
+      <section id="confirmacion" class="panel" hidden aria-labelledby="titulo-confirmacion">
+        <h2 id="titulo-confirmacion" tabindex="-1">Solicitud enviada - Buscando ayudante disponible</h2>
+        <p class="nota">Confirmación simulada para la demo.</p>
+        <dl id="resumen"></dl>
+      </section>
     </section>
   </main>
 </body>
