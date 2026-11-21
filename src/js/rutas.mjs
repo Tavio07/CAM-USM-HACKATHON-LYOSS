@@ -68,7 +68,66 @@ const placeres = {
   vuelta: ['Desde el Edificio C, vuelve hacia Entrada Placeres.', 'Sal por la portería y cruza hacia la puerta principal del Edificio P.'],
 };
 
+const escaleraHallC = [-33.036071, -71.594703, 'Mini escalera del Hall C'];
+const ciac = [-33.036178, -71.595574, 'CIAC'];
+const patio = [-33.035474, -71.595779, 'Patio Central'];
+const kiosco = [-33.035381, -71.595604, 'Paso detrás del kiosco'];
+const gimnasio = [-33.035230, -71.595402, 'Gimnasio 1'];
+const piscina = [-33.035572, -71.595195, 'Acceso a la piscina'];
+const vestidores = [-33.035396, -71.595176, 'Vestidores'];
+const granArbol = [-33.035618, -71.594918, 'Plaza del Gran Árbol'];
+const tramoCentral = [
+  'Avanza hacia el mar hasta el Patio Central.',
+  'Frente al Aula Magna, entra por detrás del kiosco, junto al pañol de deportes y la sala de ocio.',
+  'Sigue el pasillo junto al Gimnasio 1 hasta la Biblioteca.',
+];
+const retornoCentral = [
+  'Desde la Biblioteca, toma el pasillo junto al Gimnasio 1.',
+  'Pasa detrás del kiosco y cruza el Patio Central hacia el CIAC.',
+];
+const alternativasBiblioteca = [
+  {
+    numero: 1, id: 'c-biblioteca-ciac', titulo: 'Ruta 1 · CIAC y Patio Central',
+    hitos: [escaleraHallC, ciac, patio, kiosco, gimnasio],
+    escaleras: 4, minutos: 7, etiquetas: ['Mini escaleras', 'Patio exterior', 'Pasillo junto al Gimnasio 1'],
+    ida: ['Desde el Hall C, avanza hacia el mar y baja la mini escalera.', 'Gira a la izquierda hasta el CIAC.', ...tramoCentral],
+    vuelta: [...retornoCentral, 'Desde el CIAC, vuelve a la mini escalera del Hall C y súbela.'],
+  },
+  {
+    numero: 2, id: 'c-biblioteca-piscina', titulo: 'Ruta 2 · Piscina y vestidores',
+    hitos: [escaleraHallC, piscina, vestidores], lugaresIntermedios: ['edificio-b'],
+    escaleras: 28, minutos: 4, fatigaAlta: true, oscuro: true,
+    etiquetas: ['Varios tramos de escaleras', 'Ruta directa', 'Vestidores'],
+    ida: ['Desde el Hall C, avanza hacia el mar y baja la mini escalera.', 'Sigue derecho y toma las escaleras de la puerta hacia la piscina.',
+      'Avanza hasta los vestidores y baja la escalera de ese sector.', 'Gira a la derecha en el pasillo y sigue hasta la Biblioteca.'],
+    vuelta: ['Desde la Biblioteca, vuelve por el pasillo hasta la escalera de los vestidores.', 'Sube junto a los vestidores y vuelve al acceso de la piscina.',
+      'Toma las escaleras del acceso y sube la mini escalera para regresar al Hall C.'],
+  },
+  {
+    numero: 3, id: 'c-biblioteca-arbol', titulo: 'Ruta 3 · Plaza del Gran Árbol',
+    hitos: [escaleraHallC, granArbol, [-33.035380, -71.594941, 'Escaleras de la plaza'], [-33.035102, -71.595018, 'Exterior de la Biblioteca']],
+    escaleras: 16, minutos: 5, etiquetas: ['Mini escaleras sucesivas', 'Plaza al aire libre'],
+    ida: ['Desde el Hall C, avanza hacia el mar y baja la mini escalera.', 'Gira a la derecha hasta la plaza del Gran Árbol.',
+      'Baja una mini escalera y sigue recto por las otras dos.', 'Gira a la derecha para quedar frente a la Biblioteca.'],
+    vuelta: ['Desde la Biblioteca, dirígete a las escaleras de la plaza y sube los tres tramos.', 'Pasa por el Gran Árbol y vuelve hacia el Hall C.',
+      'Sube la mini escalera para regresar al hall.'],
+  },
+  {
+    numero: 4, id: 'c-biblioteca-placeres', titulo: 'Ruta 4 · Entrada Placeres y CIAC',
+    hitos: [[-33.036309, -71.594515, 'Salida del Edificio C'], [...puntos['entrada-placeres'], 'Entrada Placeres'],
+      ciac, patio, kiosco, gimnasio],
+    escaleras: 0, pendiente: true, rampaC: true, viaPlaceres: true, minutos: 9,
+    etiquetas: ['Evita la escalera inicial', 'Bajada exterior', 'Accesibilidad por confirmar'],
+    ida: ['Desde el Hall C, vuelve hacia la salida que da al Edificio P.', 'Al salir, gira a la derecha y avanza hasta Entrada Placeres.',
+      'Baja por el acceso hacia el CIAC.', ...tramoCentral],
+    vuelta: [...retornoCentral, 'Sube desde el CIAC hasta Entrada Placeres.',
+      'Sigue hacia la salida del Edificio C frente al P y entra al hall.'],
+  },
+].map(ruta => ({ ...ruta, desde: 'edificio-c', hasta: 'biblioteca', exterior: true,
+  forma: ruta.hitos.map(([lat, lng]) => [lat, lng]) }));
+
 export const RUTAS_PREHECHAS = [
+  ...alternativasBiblioteca,
   { ...tunel, id: 'tunel-escalera', titulo: 'Escalera principal y túnel', desde: 'edificio-p', hasta: 'edificio-c', pisoP: -1, acceso: 'escalera', minutos: 2 },
   { ...tunel, id: 'tunel-ascensor', titulo: 'Ascensor y túnel', desde: 'edificio-p', hasta: 'edificio-c', pisoP: -1, acceso: 'ascensor', minutos: 3 },
   { ...placeres, id: 'placeres-escalera', titulo: 'Escalera y Entrada Placeres', desde: 'edificio-p', hasta: 'edificio-c', pisoP: 1, acceso: 'escalera', minutos: 3 },
@@ -93,6 +152,9 @@ function evaluar(ruta, escaleras, minutos, restricciones) {
   if (escaleras && restricciones.has('sin-escaleras')) {
     return { estado: 'ROJO', motivo: 'El recorrido incluye escalones.' };
   }
+  if (ruta.fatigaAlta && restricciones.has('fatiga')) {
+    return { estado: 'ROJO', motivo: 'Las escaleras de la piscina y los vestidores exigen esfuerzo alto.' };
+  }
   if (ruta.resbaladiza && restricciones.has('lluvia')) {
     return { estado: 'ROJO', motivo: 'El túnel y su escalera se simulan resbalosos con lluvia.' };
   }
@@ -101,6 +163,7 @@ function evaluar(ruta, escaleras, minutos, restricciones) {
   if ((ruta.oscuro || ruta.exterior) && restricciones.has('poca-luz')) avisos.push('Visibilidad reducida en el recorrido');
   if (restricciones.has('visibilidad') && (ruta.oscuro || ruta.cruce || escaleras)) avisos.push('El trayecto exige atención al cruce, al túnel o a los escalones');
   if (restricciones.has('fatiga') && (escaleras || ruta.pendiente || minutos >= 4)) avisos.push('Recorrido de mayor esfuerzo o duración');
+  if (restricciones.has('sin-escaleras') && ruta.pendiente && ruta.numero === 4) avisos.push('Confirma en terreno la continuidad sin peldaños de la bajada por Placeres');
   if (restricciones.has('movilidad') && (escaleras || ruta.pendiente)) avisos.push('Escalones o pendiente que dificultan el desplazamiento');
   if (restricciones.has('menos-estimulos') && ruta.cruce) avisos.push('Cruce vehicular con posibles estímulos intensos');
   if (restricciones.has('recorrido-simple') && (ruta.cruce || ruta.ida.length > 2)) avisos.push('El recorrido tiene cruces o varios cambios de dirección');
@@ -115,7 +178,7 @@ function conIncidencias(ruta, usaAscensor, restricciones, base, incidencias) {
   for (const aviso of incidencias) {
     if (!aviso.activa) continue;
     const coincide = aviso.lugar === ruta.desde || aviso.lugar === ruta.hasta ||
-      (ruta.viaPlaceres && aviso.lugar === 'entrada-placeres');
+      (ruta.viaPlaceres && aviso.lugar === 'entrada-placeres') || ruta.lugaresIntermedios?.includes(aviso.lugar);
     if (!coincide || (aviso.tipo === 'ascensor-p' && !usaAscensor) ||
         (aviso.tipo === 'rampa-c' && !ruta.rampaC)) continue;
     if (aviso.tipo === 'ascensor-p' || (aviso.tipo === 'rampa-c' &&
@@ -154,6 +217,8 @@ export function buscarRutas(origen, destino, limitaciones, incidencias = []) {
     const peso = estado.estado === 'ROJO' ? null : minutos + Math.ceil(escaleras / 16) + estado.penalizacion;
     opciones.push({
       id: ruta.id,
+      numero: ruta.numero,
+      hitos: ruta.hitos ?? [],
       titulo: diferencia || ruta.pisoP === undefined ? ruta.titulo : ruta.pisoP === -1 ? 'Túnel subterráneo' : 'Entrada Placeres',
       minutos,
       etiquetas: [...new Set([...ruta.etiquetas, ...(usaAscensor ? ['Con ascensor'] : []), ...(escaleras ? ['Escaleras'] : [])])],

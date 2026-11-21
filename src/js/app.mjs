@@ -1,3 +1,4 @@
+import { prepararCapasRutas } from './mapa-rutas.mjs';
 import { usuarioPorRol, autenticar, accesosDemo } from './directorio.mjs';
 import { CENTRO_CAMPUS, LIMITACIONES, LUGARES, ORIGENES_QR, buscarRutas } from './rutas.mjs';
 import { prepararCuenta } from './cuenta.mjs';
@@ -15,7 +16,20 @@ const estados = {
 const leaflet = window.L;
 const mapasCampus = new Map();
 let mapaRutas;
-let capasRutas;
+let ultimoTrayecto;
+const capasMapa = prepararCapasRutas({
+  leaflet,
+  contenedor: el('selector-mapa-rutas'),
+  obtenerMapa() {
+    mapaRutas ??= crearMapa('mapa-rutas');
+    reportes.renderizarMarcadores();
+    return mapaRutas;
+  },
+  color: estado => estados[estado].color,
+  alSeleccionar(id) {
+    for (const tarjeta of el('alternativas').children) tarjeta.classList.toggle('ruta-en-mapa', tarjeta.dataset.ruta === id);
+  },
+});
 let viaje;
 let rutaElegida;
 let borrador;
@@ -159,6 +173,7 @@ function invalidarResultados() {
   viaje = undefined;
   borrador = undefined;
   el('resultados').hidden = true;
+  capasMapa.limpiar();
 }
 
 function leerPunto(tipo) {
@@ -171,49 +186,9 @@ function leerPunto(tipo) {
   };
 }
 
-function mostrarMapa(opciones, origen, destino, seleccion) {
-  mapaRutas ??= crearMapa('mapa-rutas');
-  if (!mapaRutas) return;
-  mapaRutas.invalidateSize();
-  reportes.renderizarMarcadores();
-  capasRutas ??= leaflet.layerGroup().addTo(mapaRutas);
-  capasRutas.clearLayers();
-  const coordenadas = [];
-  const orden = [...opciones.filter(ruta => ruta.id !== seleccion), ...opciones.filter(ruta => ruta.id === seleccion)];
-  for (const ruta of orden) {
-    const activa = ruta.id === seleccion;
-    const duplicada = opciones.some(otra => otra.id !== ruta.id && otra.trazado.every(
-      (punto, indice) => punto === ruta.trazado[indice],
-    ) && otra.trazado.length === ruta.trazado.length);
-    const desfase = duplicada && ruta.variante === 'ascensor' ? .000032 : 0;
-    const trazado = ruta.trazado.map(([lat, lng], indice) =>
-      indice > 0 && indice < ruta.trazado.length - 1 ? [lat + desfase, lng] : [lat, lng],
-    );
-    coordenadas.push(...trazado);
-    leaflet.polyline(trazado, {
-      color: estados[ruta.estado].color,
-      weight: activa ? 8 : 5,
-      opacity: activa ? 1 : .75,
-      dashArray: ruta.estado === 'ROJO' ? '7 7' : null,
-    }).addTo(capasRutas).on('click', () => mostrarAlternativas(opciones, ruta.id));
-  }
-  for (const [punto, etiqueta] of [[origen, 'Origen'], [destino, 'Destino']]) {
-    const lugar = lugares.get(punto.id);
-    const coordenada = [lugar.lat, lugar.lng];
-    coordenadas.push(coordenada);
-    leaflet.marker(coordenada, { alt: etiqueta + ': ' + lugar.nombre })
-      .addTo(capasRutas).bindTooltip(etiqueta + ': ' + lugar.nombre);
-  }
-  const bounds = leaflet.latLngBounds(coordenadas);
-  if (!mapaRutas.getBounds().contains(bounds) || seleccion === opciones[0]?.id || !opciones.length) {
-    mapaRutas.fitBounds(bounds, { padding: [24, 24], maxZoom: 18, animate: false });
-  }
-}
-
 function mostrarAlternativas(opciones, seleccion) {
   rutaElegida = opciones.find(ruta => ruta.id === seleccion);
   if (!solicitudId) borrador = undefined;
-  mostrarMapa(opciones, viaje.origen, viaje.destino, seleccion);
   const listado = el('alternativas');
   for (const tarjeta of listado.children) {
     const activa = tarjeta.dataset.ruta === seleccion;
@@ -250,7 +225,14 @@ function tarjetaRuta(ruta, recomendada, opciones) {
     item.textContent = paso;
     detalle.append(item);
   }
-  boton.addEventListener('click', () => mostrarAlternativas(opciones, ruta.id));
+  const elegir = () => {
+    mostrarAlternativas(opciones, ruta.id);
+    capasMapa.seleccionar(ruta.id, true);
+  };
+  boton.addEventListener('click', elegir);
+  tarjeta.addEventListener('click', event => {
+    if (!event.target.closest('button, a, input, select, textarea, summary')) elegir();
+  });
   tarjeta.append(boton, estado, etiquetas);
   if (ruta.motivo) {
     const aviso = document.createElement('p');
@@ -280,6 +262,7 @@ function mostrarResultados(seleccionAnterior) {
   sincronizarExpiracionReportes();
   const opciones = buscarRutas(viaje.origen, viaje.destino, [...viaje.limitaciones, ...viaje.entorno], listarIncidencias());
   const recomendada = opciones.find(ruta => ruta.estado !== 'ROJO')?.id;
+  if (opciones.every(ruta => ruta.numero)) opciones.sort((a, b) => a.numero - b.numero);
   const mismoPunto = viaje.origen.id === viaje.destino.id && viaje.origen.piso === viaje.destino.piso;
   el('aviso-rutas').textContent = recomendada ? '' : mismoPunto ? 'El origen y el destino coinciden.'
     : opciones.length ? 'Ninguna ruta es viable con las limitaciones e incidencias actuales.'
@@ -289,6 +272,9 @@ function mostrarResultados(seleccionAnterior) {
   const previa = opciones.find(ruta => ruta.id === seleccionAnterior && ruta.estado !== 'ROJO');
   el('resultados').hidden = false;
   mostrarAlternativas(opciones, previa?.id ?? recomendada ?? opciones[0]?.id);
+  const trayecto = JSON.stringify([viaje.origen.id, viaje.origen.piso, viaje.destino.id, viaje.destino.piso]);
+  capasMapa.cargar(opciones, lugares.get(viaje.origen.id), lugares.get(viaje.destino.id), trayecto === ultimoTrayecto);
+  ultimoTrayecto = trayecto;
   if (tarjetaConFoco) {
     [...el('alternativas').children].find(tarjeta => tarjeta.dataset.ruta === tarjetaConFoco)
       ?.querySelector('button').focus({ preventScroll: true });

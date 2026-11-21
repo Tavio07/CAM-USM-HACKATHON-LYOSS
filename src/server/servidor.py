@@ -13,6 +13,7 @@ from uuid import UUID
 ROOT = Path(__file__).resolve().parents[2]
 ARCHIVOS = {
     "/": "index.html", "/index.html": "index.html", "/ayudante": "index.html",
+    "/src/js/mapa-rutas.mjs": "src/js/mapa-rutas.mjs",
     "/src/js/app.mjs": "src/js/app.mjs", "/src/js/solicitudes.mjs": "src/js/solicitudes.mjs",
     "/src/js/ttl.mjs": "src/js/ttl.mjs", "/src/data/report-ttl.json": "src/data/report-ttl.json",
     "/src/js/directorio.mjs": "src/js/directorio.mjs", "/src/data/directorio-usm.json": "src/data/directorio-usm.json",
