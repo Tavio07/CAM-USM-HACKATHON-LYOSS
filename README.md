@@ -4,11 +4,65 @@ Prototipo de movilidad y acompañamiento en la UTFSM Casa Central, Valparaíso. 
 
 ## Cómo ejecutar la demo
 
-- **Dos pestañas:** abre `index.html` con Live Server y usa la misma URL en ambas. Inicia sesión con dos ROL USM distintos.
-- **Dos dispositivos en la misma red Wi-Fi:** desde la raíz, ejecuta `py -3 src/server/servidor.py --host 0.0.0.0 --port 8000` en Windows o `python3 src/server/servidor.py --host 0.0.0.0 --port 8000` en macOS o Linux. Abre `http://IP_DEL_EQUIPO:8000/` en ambos.
-- **GitHub Pages:** publica la raíz del proyecto. Este modo usa el almacenamiento del navegador para la demo entre pestañas. La sincronización entre dispositivos usa el servidor Python.
+### Requisitos
 
-El acceso consulta un directorio ficticio del repositorio, incluso sin servidor. Usa **202373045-2** (Daniela, con historial) o **202473018-K** (Octavio, sin historial), con la contraseña de demo **usm2026**. Los accesos rápidos completan e ingresan con esas cuentas. Usa solamente estas credenciales ficticias. Cada pestaña conserva su sesión al recargar. Un enlace como `?origen=p4` precarga el piso 4 del Edificio P al elegir **Necesito ayuda**.
+- Un navegador actualizado. El frontend usa HTML, CSS y módulos JavaScript.
+- Conexión a Internet para cargar Leaflet, el mapa base de OpenStreetMap y los recursos visuales externos.
+- Live Server para la demo estática o Python 3 para compartir datos entre dispositivos. El servidor usa la biblioteca estándar de Python.
+
+Abre la aplicación mediante HTTP con una de las opciones siguientes. Los módulos y los archivos JSON se cargan desde el servidor web.
+
+### Opción A · Live Server y dos pestañas
+
+1. Abre la carpeta del repositorio en VS Code.
+2. Sobre `index.html`, elige **Open with Live Server**.
+3. Abre esa misma URL en dos pestañas independientes del mismo navegador. Conserva la misma dirección y puerto en ambas.
+4. En la primera pestaña, ingresa como Octavio y elige **Necesito ayuda**. En la segunda, ingresa como Daniela y elige **Quiero ayudar**.
+5. La barra de estado debe indicar **Modo local · Sincronización entre pestañas**.
+
+### Opción B · Servidor Python y dos dispositivos
+
+Ejecuta el comando desde la raíz del repositorio.
+
+**Windows**
+
+```powershell
+py -3 src/server/servidor.py --host 0.0.0.0 --port 8000
+```
+
+**macOS o Linux**
+
+```bash
+python3 src/server/servidor.py --host 0.0.0.0 --port 8000
+```
+
+En el equipo donde se ejecuta el servidor, abre `http://127.0.0.1:8000/`. En cada teléfono de la misma red Wi-Fi, abre `http://IP_LOCAL_DEL_EQUIPO:8000/`, sustituyendo el marcador por la dirección del equipo anfitrión. En Windows puedes consultarla con `ipconfig`, en la línea **Dirección IPv4** del adaptador conectado. La barra de estado debe indicar **Conectado al servicio de asistencia** en ambos dispositivos.
+
+El servidor guarda las solicitudes y reportes en `asistencia-datos.json`. Para preparar una ronda de prueba vacía sin tocar el historial anterior, inicia el servidor con un nombre de archivo nuevo:
+
+```powershell
+py -3 src/server/servidor.py --host 0.0.0.0 --port 8000 --datos demo-nueva.json
+```
+
+Los ejemplos precargados del directorio seguirán visibles. Detén el servidor con `Ctrl+C`.
+
+### Opción C · GitHub Pages
+
+Publica la raíz del repositorio, donde está `index.html`. Las rutas de los recursos son relativas y funcionan también bajo un subdirectorio. Esta modalidad permite probar el flujo entre pestañas del mismo navegador. Para compartir solicitudes y reportes entre dispositivos, usa el servidor Python.
+
+### Credenciales ficticias
+
+| Cuenta | ROL USM | Contraseña de demo | Uso sugerido |
+| --- | --- | --- | --- |
+| Octavio Pereira | `202473018-K` | `usm2026` | Estudiante que solicita ayuda |
+| Daniela Soto | `202373045-2` | `usm2026` | Ayudante con historial de ejemplo |
+
+También puedes usar **Accesos de demostración** en el login. Cada pestaña conserva su propia sesión al recargar. Desde ese mismo entorno, agrega `?origen=p4` a la URL para precargar el **Edificio P, piso 4** al elegir **Necesito ayuda**. Ejemplo con el servidor Python:
+
+```text
+http://127.0.0.1:8000/?origen=p4
+```
+
 
 ## Cómo se recomiendan las rutas
 
@@ -52,14 +106,59 @@ En **Necesito ayuda**, los filtros se eligen para cada viaje. Además de las nec
 
 El usuario elige lo que le sirve ese día. La aplicación guarda esas selecciones en la solicitud del viaje si se pide ayuda. El perfil conserva solo los datos de la sesión y las estadísticas de acompañamiento.
 
-## Reportes y asistencia en vivo
+## Ejemplos reproducibles
 
-1. En la primera pestaña, entra a **Necesito ayuda**. Selecciona **Sin escaleras**, calcula del piso 4 del Edificio P al Edificio C y deja el resultado abierto.
-2. En la otra, entra a **Quiero ayudar** y pulsa **Reportar**, junto a **Ranking**. Elige **Edificio P** y **Infraestructura · Ascensor detenido**, ajusta el tiempo y publica. Tanto estudiantes como ayudantes pueden crear avisos seleccionando lugar, tipo y duración.
-3. En la primera pestaña verás la alerta y la ruta de ascensor en rojo. Desde **Bandeja de cuenta → Mis reportes → Sacar reporte**, el autor puede retirar su reporte y la ruta se recalcula.
-4. Para probar el acompañamiento, solicita ayuda en la primera pestaña. En la segunda, acepta y finaliza. El estudiante confirma la llegada y califica con estrellas. Los puntos, el historial y el ranking se actualizan con esa asistencia.
+### 1. Comparar las cuatro rutas del Edificio C a la Biblioteca
 
-Las pestañas comparten cambios mediante `BroadcastChannel` y `localStorage` en modo local. Con el servidor también se consulta la API REST cada 1,5 segundos mientras la vista está visible. El servidor guarda los datos en `asistencia-datos.json`, configurable con `--datos`.
+1. En **Necesito ayuda**, elige **Edificio C**, piso **1**, como origen y **Biblioteca · Edificio U**, piso **1**, como destino.
+2. Pulsa **Generar solicitud / Ver rutas**. Usa **1**, **2**, **3**, **4** o **Todas** para mostrar las alternativas en el mapa.
+3. Marca **Sin escaleras** y vuelve a calcular. Las tres variantes con escalones quedan rojas. La opción por **Entrada Placeres y CIAC** queda amarilla porque falta confirmar en terreno la continuidad sin peldaños.
+
+**Resultado esperado:** los botones cambian las capas del mapa y las tarjetas siguen disponibles debajo. Los reportes en el mapa de resultados se limitan a los que afectan a las rutas mostradas.
+
+### 2. Ver cómo un reporte cambia la ruta del piso 4 del P al C
+
+1. En la pestaña del estudiante, elige **Edificio P, piso 4**, y **Edificio C, piso 1**. Marca **Sin escaleras** y deja el resultado abierto. Para reproducir los números del ejemplo, parte sin avisos previos que afecten el trayecto.
+2. Si quieres comprobar el peso, marca **Lluvia** y recalcula. La variante **Ascensor y Entrada Placeres** pasa de **4 a 6 puntos**.
+3. En la pestaña del ayudante, pulsa **Reportar**. Elige **Entrada Placeres → Piso resbaloso** y publica. Con lluvia, la variante pasa a **9 puntos**. La tarjeta muestra el motivo y el mapa un marcador pertinente.
+4. Publica otro aviso en **Edificio P → Infraestructura · Ascensor detenido**. La variante que depende de ese ascensor queda roja, sin peso comparable.
+5. En la cuenta que publicó cada aviso, abre **Mis reportes → Sacar reporte**. Retira primero el aviso de ascensor y luego el de piso resbaloso. La alternativa recupera la viabilidad y el peso que corresponda a los filtros y avisos restantes.
+
+**Resultado esperado:** el estudiante ve los cambios sin volver a calcular manualmente. En la vista pública aparece el lugar, el tipo y el tiempo restante del reporte.
+
+### 3. Solicitar acompañamiento, cerrar la asistencia y calificar
+
+1. Con un trayecto calculado, en la pestaña del estudiante pulsa **Solicitar Ayudante de Turno**.
+2. En la pestaña del ayudante, pulsa **Aceptar** en el aviso entrante. La vista del estudiante muestra quién aceptó y el punto de encuentro.
+3. En la pestaña del ayudante, pulsa **Finalizar asistencia**.
+4. En la pestaña del estudiante, pulsa **Confirmar llegada**. Si quieres, marca una etiqueta o escribe un comentario antes de tocar las estrellas. Tocar una calificación la envía.
+5. Abre **Ranking**, **Ver mi perfil** o **Historial de ayudas** desde la cuenta del ayudante.
+
+**Resultado esperado:** si otorgas cinco estrellas, Daniela gana **5 puntos** y registra **una ayuda completada**. Los puntos se suman una vez, al calificar. El ranking ordena por ayudas completadas y desempata por evaluación promedio.
+
+### 4. Comprobar la caducidad automática
+
+1. Con una ruta abierta, publica desde otra pestaña un aviso en un lugar que la afecte. En **Tiempo aproximado del reporte**, escribe **1 minuto** y pulsa **Publicar reporte**.
+2. Comprueba que el aviso aparezca en el navegador del estudiante y espera a que venza. Mantén visible la vista que quieres verificar.
+3. Desde la cuenta que lo publicó, abre **Mis reportes** y busca la entrada.
+
+**Resultado esperado:** el aviso desaparece de las alertas y del mapa, se recalcula la ruta y la entrada conserva el estado **Expirado**. Si quieres probar **+15 min** o **Editar tiempo**, hazlo con otro aviso para no prolongar este ejemplo.
+
+### Cómo se sincroniza
+
+En modo local, las pestañas comparten cambios mediante `BroadcastChannel` y `localStorage`. En modo servidor, el navegador consulta la API REST cada **1,5 segundos** mientras la vista está visible. Los reportes, asistencias y calificaciones del servidor persisten en el archivo configurado mediante `--datos`.
+
+## Solución de problemas
+
+| Situación | Qué revisar |
+| --- | --- |
+| El mapa base aparece vacío | Comprueba la conexión a Internet y que los recursos externos estén disponibles. |
+| Las pestañas no comparten eventos | Usa el mismo navegador, dirección y puerto. En modo servidor, confirma el estado de conexión en ambas vistas. |
+| Los teléfonos no se conectan | Confirma que estén en la misma red, que el comando use `--host 0.0.0.0` y que estén abriendo la IP local del equipo anfitrión. El puerto debe permitir conexiones entrantes. |
+| No aparece ninguna ruta | Comprueba el origen, el destino y sus pisos. El catálogo cubre corredores precargados. Para una demo rápida usa C, piso 1, hacia Biblioteca, piso 1. |
+| El peso no coincide con el ejemplo | Revisa los filtros activos y las incidencias previas. Ambos cambian el cálculo. |
+| El ayudante no recibe la solicitud | Comprueba que cada pestaña use un ROL distinto y que la segunda esté en **Quiero ayudar**. En esa vista también puedes pulsar **Ver solicitudes pendientes**. |
+
 
 ## Duración de los reportes
 
@@ -71,3 +170,8 @@ La duración por categoría y el incremento para renovar se configuran en `src/d
 - `src/js/` contiene los módulos de interfaz, rutas, cuenta y sincronización.
 - `src/styles/` contiene el CSS, `src/assets/` el logo y `src/data/` los datos de referencia del campus.
 - `src/server/servidor.py` sirve la API y el frontend, sin dependencias externas.
+
+
+## Licencia
+
+El código original de CAM USM se distribuye bajo la [licencia MIT](LICENSE). Los recursos de terceros conservan sus licencias y atribuciones. La fotografía de Casa Central es de [Alexxxos](https://commons.wikimedia.org/wiki/File:Central_Building,_Universidad_T%C3%A9cnica_Federico_Santa_Mar%C3%ADa,_Valpara%C3%ADso,_Chile.jpg) y se usa bajo [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/). La licencia MIT del código no concede derechos sobre los nombres, logotipos ni marcas de terceros.
