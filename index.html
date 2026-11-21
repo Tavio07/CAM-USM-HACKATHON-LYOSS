@@ -61,6 +61,7 @@
       </section>
       <section class="panel" aria-labelledby="titulo-origen">
         <h2 id="titulo-origen">¿Dónde estás?</h2>
+        <aside id="avisos-campus" class="avisos-campus" role="status" hidden><strong>Avisos en vivo del campus</strong><ul></ul></aside>
         <div id="mapa-origen" class="mapa" role="region" aria-label="Mapa de selección de origen"></div>
         <label for="origen">Origen</label>
         <select id="origen" required><option value="">Selecciona tu ubicación</option></select>
@@ -94,6 +95,7 @@
       <section class="panel">
         <h2 id="titulo-resultados" tabindex="-1">Rutas alternativas</h2>
         <p class="nota">Trazados y condiciones aproximados para la demo.</p>
+        <aside id="avisos-campus-resultados" class="avisos-campus" hidden><strong>Avisos en vivo del campus</strong><ul></ul></aside>
         <div id="mapa-rutas" class="mapa" role="region" aria-label="Mapa de rutas alternativas"></div>
         <p id="aviso-rutas" role="status"></p>
         <div id="alternativas"></div>
@@ -141,6 +143,22 @@
         <div id="mapa-ayudante" class="mapa" role="region" aria-label="Punto de encuentro y ruta de asistencia"></div>
         <button id="finalizar" class="principal" type="button">Finalizar asistencia</button>
       </div>
+      <details class="panel reporte-campus">
+        <summary>Reportar estado del campus</summary>
+        <div class="opciones" id="incidencias-rapidas"></div>
+        <form id="publicar-incidencia">
+          <label for="lugar-incidencia">Lugar o edificio</label>
+          <select id="lugar-incidencia" required><option value="">Selecciona un lugar</option></select>
+          <label for="descripcion-incidencia">Descripción breve</label>
+          <input id="descripcion-incidencia" maxlength="140" placeholder="Ej. Ascensor detenido en piso 2" required>
+          <button id="publicar-aviso" class="principal" type="submit">Publicar aviso</button>
+        </form>
+        <p id="estado-incidencias" role="status"></p>
+        <p id="error-incidencias" role="alert"></p>
+        <h3>Incidencias activas</h3>
+        <p id="sin-incidencias" class="nota">No hay incidencias activas.</p>
+        <ul id="lista-incidencias" class="lista-incidencias"></ul>
+      </details>
       <dialog id="solicitud-entrante" aria-labelledby="titulo-entrante">
         <h2 id="titulo-entrante">¡Nueva solicitud de acompañamiento!</h2>
         <dl id="resumen-entrante"></dl>

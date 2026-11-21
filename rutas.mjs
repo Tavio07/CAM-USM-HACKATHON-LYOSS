@@ -25,6 +25,12 @@ export const LIMITACIONES = {
   ],
 };
 
+export const INCIDENCIAS_RAPIDAS = [
+  { id: 'ascensor-p', lugar: 'edificio-p', descripcion: 'Ascensor Edificio P fuera de servicio' },
+  { id: 'rampa-c', lugar: 'edificio-c', descripcion: 'Rampa Edificio C bloqueada' },
+  { id: 'acceso-humedo', lugar: 'entrada-placeres', descripcion: 'Acceso húmedo / resbaloso' },
+];
+
 export const ORIGENES_QR = {
   p4: ['edificio-p', 4],
   p1: ['edificio-p', 1],
@@ -51,6 +57,8 @@ const placeres = {
   escaleras: 0,
   exterior: true,
   cruce: true,
+  rampaC: true,
+  viaPlaceres: true,
   ida: ['Sal por la puerta principal del Edificio P.', 'Cruza la calle y vuelve a entrar por Entrada Placeres.', 'Gira a la derecha y sigue hasta el exterior del Edificio C.'],
   vuelta: ['Desde el Edificio C, vuelve hacia Entrada Placeres.', 'Sal por la portería y cruza hacia la puerta principal del Edificio P.'],
 };
@@ -63,7 +71,7 @@ export const RUTAS_PREHECHAS = [
   { id: 'entrada-a', titulo: 'Escalinata principal', desde: 'entrada', hasta: 'edificio-a', forma: [[-33.034446, -71.595724], [-33.034681, -71.595626]], escaleras: 34, exterior: true, pendiente: true, minutos: 3, etiquetas: ['Escaleras', 'Pendiente'], ida: ['Desde la entrada, sube la escalinata hacia el Edificio A.'], vuelta: ['Desde el Edificio A, baja por la escalinata hacia Entrada Principal.'] },
   { id: 'a-b', titulo: 'Paso entre los edificios A y B', desde: 'edificio-a', hasta: 'edificio-b', forma: [[-33.035156, -71.595598], [-33.035364, -71.595446]], escaleras: 0, pendiente: true, exterior: true, minutos: 3, etiquetas: ['Pendiente', 'Al aire libre'], ida: ['Desde el acceso del Edificio A, sigue el paso exterior hacia el Edificio B.'], vuelta: ['Desde el acceso del Edificio B, vuelve por el paso exterior hacia el Edificio A.'] },
   { id: 'casino-biblioteca', titulo: 'Paso exterior a la Biblioteca', desde: 'casino', hasta: 'biblioteca', forma: [[-33.035387, -71.595834], [-33.035142, -71.595535]], escaleras: 0, pendiente: true, exterior: true, minutos: 4, etiquetas: ['Pendiente', 'Al aire libre'], ida: ['Desde el Casino, toma el paso exterior hasta el acceso de la Biblioteca.'], vuelta: ['Desde la Biblioteca, sigue el paso exterior hacia el Casino.'] },
-  { id: 'placeres-c', titulo: 'Portería Placeres y Edificio C', desde: 'entrada-placeres', hasta: 'edificio-c', forma: placeres.forma.slice(3), escaleras: 0, exterior: true, minutos: 2, etiquetas: ['Al aire libre'], ida: [placeres.ida[2]], vuelta: ['Sigue el paso exterior hasta la portería de Entrada Placeres.'] },
+  { id: 'placeres-c', titulo: 'Portería Placeres y Edificio C', desde: 'entrada-placeres', hasta: 'edificio-c', forma: placeres.forma.slice(3), rampaC: true, viaPlaceres: true, escaleras: 0, exterior: true, minutos: 2, etiquetas: ['Al aire libre'], ida: [placeres.ida[2]], vuelta: ['Sigue el paso exterior hasta la portería de Entrada Placeres.'] },
 ];
 
 function evaluar(ruta, escaleras, minutos, restricciones) {
@@ -83,7 +91,27 @@ function evaluar(ruta, escaleras, minutos, restricciones) {
   return { estado: avisos.length ? 'AMARILLO' : 'VERDE', motivo: avisos.join(' · ') };
 }
 
-export function buscarRutas(origen, destino, limitaciones) {
+function conIncidencias(ruta, usaAscensor, restricciones, base, incidencias) {
+  let estado = base.estado;
+  const motivos = base.motivo ? [base.motivo] : [];
+  for (const aviso of incidencias) {
+    if (!aviso.activa) continue;
+    const coincide = aviso.lugar === ruta.desde || aviso.lugar === ruta.hasta ||
+      (ruta.viaPlaceres && aviso.lugar === 'entrada-placeres');
+    if (!coincide || (aviso.tipo === 'ascensor-p' && !usaAscensor) ||
+        (aviso.tipo === 'rampa-c' && !ruta.rampaC)) continue;
+    if (aviso.tipo === 'ascensor-p' || (aviso.tipo === 'rampa-c' &&
+        (restricciones.has('sin-escaleras') || restricciones.has('movilidad')))) {
+      estado = 'ROJO';
+    } else if (estado === 'VERDE') {
+      estado = 'AMARILLO';
+    }
+    motivos.push(aviso.descripcion);
+  }
+  return { estado, motivo: [...new Set(motivos)].join(' · ') };
+}
+
+export function buscarRutas(origen, destino, limitaciones, incidencias = []) {
   if (origen.id === destino.id && origen.piso === destino.piso) return [];
   const restricciones = new Set(limitaciones);
   const opciones = [];
@@ -111,7 +139,8 @@ export function buscarRutas(origen, destino, limitaciones) {
       pasos: ida ? [cambio, ...ruta.ida].filter(Boolean) : [...ruta.vuelta, cambio].filter(Boolean),
       trazado: ida ? trazado : trazado.reverse(),
       variante: ruta.acceso,
-      ...evaluar(ruta, escaleras, minutos, restricciones),
+      ...conIncidencias(ruta, usaAscensor, restricciones,
+        evaluar(ruta, escaleras, minutos, restricciones), incidencias),
     });
   }
 

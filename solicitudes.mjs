@@ -1,7 +1,12 @@
+import { INCIDENCIAS_RAPIDAS, LUGARES } from './rutas.mjs';
+
 const API = './api/solicitudes';
 const CLAVE = 'cae-usm-asistencia-v2';
 const canal = typeof BroadcastChannel === 'function' ? new BroadcastChannel(CLAVE) : null;
 const registros = new Map();
+const CLAVE_INCIDENCIAS = 'cam-usm-incidencias-v1';
+const incidencias = new Map();
+const oyentesIncidencias = new Set();
 const TRANSICIONES = {
   aceptar: ['pendiente', 'aceptada'],
   rechazar: ['pendiente', 'rechazada'],
@@ -46,15 +51,23 @@ const oyentes = new Set();
 let modo;
 let encuesta;
 
-function notificar(datos) {
+function fusionar(registro, datos) {
   let cambios = false;
   for (const actual of datos) {
-    if (!registros.has(actual.id) || registros.get(actual.id).revision < actual.revision) {
-      registros.set(actual.id, actual);
+    if (!registro.has(actual.id) || registro.get(actual.id).revision < actual.revision) {
+      registro.set(actual.id, actual);
       cambios = true;
     }
   }
-  if (cambios) for (const oyente of oyentes) oyente();
+  return cambios;
+}
+
+function notificar(datos) {
+  if (fusionar(registros, datos)) for (const oyente of oyentes) oyente();
+}
+
+function notificarIncidencias(datos) {
+  if (fusionar(incidencias, datos)) for (const oyente of oyentesIncidencias) oyente();
 }
 
 function leerLocal() {
@@ -78,7 +91,10 @@ async function pedir(ruta, datos) {
 
 async function consultar() {
   if (encuesta) return encuesta;
-  encuesta = pedir(API).then(datos => notificar(datos.solicitudes)).finally(() => { encuesta = null; });
+  encuesta = pedir(API).then(datos => {
+    notificar(datos.solicitudes);
+    notificarIncidencias(datos.incidencias ?? []);
+  }).finally(() => { encuesta = null; });
   return encuesta;
 }
 
@@ -86,6 +102,7 @@ export async function iniciarAsistencia() {
   if (!document.querySelector('meta[name="cae-api"]')) {
     modo = 'local';
     notificar(leerLocal());
+    notificarIncidencias(leerIncidencias());
     return modo;
   }
   await consultar();
@@ -202,9 +219,61 @@ export function cambiarSolicitud(id, accion, datos = {}) {
   });
 }
 
+function leerIncidencias() {
+  return JSON.parse(localStorage.getItem(CLAVE_INCIDENCIAS) ?? '[]');
+}
+
+export function listarIncidencias() {
+  return [...incidencias.values()].filter(item => item.activa).sort((a, b) => b.reportadaEn.localeCompare(a.reportadaEn));
+}
+
+export function suscribirIncidencias(oyente) {
+  oyentesIncidencias.add(oyente);
+}
+
+export async function cambiarIncidencia(datos) {
+  if (!modo) throw new Error('El servicio todavía se está conectando.');
+  const actor = actorValido(datos.actor);
+  const id = datos.id ?? idSolicitud();
+  let nuevo;
+  if (modo === 'red') {
+    nuevo = await pedir('./api/incidencias', { ...datos, id, actor });
+  } else {
+    const guardar = () => {
+      const lista = leerIncidencias();
+      const indice = lista.findIndex(item => item.id === id);
+      const anterior = lista[indice];
+      if ((anterior?.activa ?? false) === datos.activa) return anterior;
+      const revision = (anterior?.revision ?? -1) + 1;
+      const rapida = INCIDENCIAS_RAPIDAS.find(item => item.id === id);
+      const lugar = rapida?.lugar ?? datos.lugar;
+      const descripcion = (rapida?.descripcion ?? datos.descripcion ?? '').trim();
+      if (datos.activa && (!LUGARES.some(item => item.id === lugar) || !descripcion || descripcion.length > 140)) {
+        throw new Error('Selecciona un lugar e ingresa una descripción de hasta 140 caracteres.');
+      }
+      const actual = datos.activa ? { id, lugar, descripcion, tipo: rapida?.id ?? 'personalizada',
+        activa: true, reportadaPor: actor.nombre, reportadaEn: new Date().toISOString(), revision }
+        : { ...anterior, activa: false, revision };
+      if (indice < 0) lista.push(actual);
+      else lista[indice] = actual;
+      localStorage.setItem(CLAVE_INCIDENCIAS, JSON.stringify(lista));
+      return actual;
+    };
+    nuevo = navigator.locks ? await navigator.locks.request(CLAVE_INCIDENCIAS, guardar) : guardar();
+  }
+  if (nuevo) {
+    notificarIncidencias([nuevo]);
+    canal?.postMessage({ modo, incidencias: [nuevo] });
+  }
+}
+
 canal?.addEventListener('message', event => {
-  if (modo && event.data?.modo === modo) notificar(event.data.datos);
+  if (!modo || event.data?.modo !== modo) return;
+  if (event.data.datos) notificar(event.data.datos);
+  if (event.data.incidencias) notificarIncidencias(event.data.incidencias);
 });
 window.addEventListener('storage', event => {
-  if (modo === 'local' && event.key === CLAVE) notificar(leerLocal());
+  if (modo !== 'local') return;
+  if (event.key === CLAVE) notificar(leerLocal());
+  if (event.key === CLAVE_INCIDENCIAS) notificarIncidencias(leerIncidencias());
 });

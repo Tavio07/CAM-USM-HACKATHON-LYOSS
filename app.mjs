@@ -1,6 +1,7 @@
 import { CENTRO_CAMPUS, LIMITACIONES, LUGARES, ORIGENES_QR, buscarRutas } from './rutas.mjs';
 import { prepararCuenta } from './cuenta.mjs';
-import { iniciarAsistencia, suscribirAsistencia, listarSolicitudes, prepararSolicitud, crearSolicitud, cambiarSolicitud, claveAyudante, ETIQUETAS_CALIFICACION } from './solicitudes.mjs';
+import { prepararIncidencias } from './incidencias.mjs';
+import { iniciarAsistencia, suscribirAsistencia, listarSolicitudes, prepararSolicitud, crearSolicitud, cambiarSolicitud, claveAyudante, ETIQUETAS_CALIFICACION, listarIncidencias, suscribirIncidencias } from './solicitudes.mjs';
 
 const el = id => document.getElementById(id);
 const lugares = new Map(LUGARES.map(lugar => [lugar.id, lugar]));
@@ -266,17 +267,28 @@ el('viaje').addEventListener('submit', event => {
     entorno: limitaciones.filter(id => LIMITACIONES.entorno.some(([clave]) => clave === id)),
     comentarios: el('comentarios').value.trim(),
   };
-  const opciones = buscarRutas(viaje.origen, viaje.destino, limitaciones);
+  mostrarResultados();
+  el('titulo-resultados').focus();
+});
+
+function mostrarResultados(seleccionAnterior) {
+  if (!viaje) return;
+  const opciones = buscarRutas(viaje.origen, viaje.destino, [...viaje.limitaciones, ...viaje.entorno], listarIncidencias());
   const recomendada = opciones.find(ruta => ruta.estado !== 'ROJO')?.id;
   const mismoPunto = viaje.origen.id === viaje.destino.id && viaje.origen.piso === viaje.destino.piso;
   el('aviso-rutas').textContent = recomendada ? '' : mismoPunto ? 'El origen y el destino coinciden.'
-    : opciones.length ? 'Ninguna de las rutas es viable con las condiciones seleccionadas.'
+    : opciones.length ? 'Ninguna ruta es viable con las limitaciones e incidencias actuales.'
     : 'No hay un recorrido de demo para estos puntos o pisos.';
+  const tarjetaConFoco = document.activeElement.closest('.alternativa')?.dataset.ruta;
   el('alternativas').replaceChildren(...opciones.map(ruta => tarjetaRuta(ruta, ruta.id === recomendada, opciones)));
+  const previa = opciones.find(ruta => ruta.id === seleccionAnterior && ruta.estado !== 'ROJO');
   el('resultados').hidden = false;
-  mostrarAlternativas(opciones, recomendada ?? opciones[0]?.id);
-  el('titulo-resultados').focus();
-});
+  mostrarAlternativas(opciones, previa?.id ?? recomendada ?? opciones[0]?.id);
+  if (tarjetaConFoco) {
+    [...el('alternativas').children].find(tarjeta => tarjeta.dataset.ruta === tarjetaConFoco)
+      ?.querySelector('button').focus({ preventScroll: true });
+  }
+}
 
 function describirPunto(punto) {
   return [punto.nombre, punto.piso === null ? '' : 'Piso ' + punto.piso, punto.referencia].filter(Boolean).join(' · ');
@@ -284,6 +296,7 @@ function describirPunto(punto) {
 
 const entrada = el('solicitud-entrante');
 const cuenta = prepararCuenta(renderizarSolicitudes);
+const renderizarIncidencias = prepararIncidencias(() => sesion, () => listo);
 const esAyudante = () => sesion?.modo === 'ayudante';
 const esEstudiante = () => sesion?.modo === 'estudiante';
 const enCurso = solicitud => ['pendiente', 'aceptada', 'pendiente_confirmacion'].includes(solicitud?.estado);
@@ -462,7 +475,7 @@ function cambiarVista() {
     selectorOrigen.encuadrar();
     selectorDestino.encuadrar();
     aplicarOrigenQr();
-    if (mapaRutas && !el('resultados').hidden) mapaRutas.invalidateSize();
+    if (mapaRutas && !el('resultados').hidden) mostrarResultados(rutaElegida?.id);
   }
   renderizarSolicitudes();
 }
@@ -645,11 +658,17 @@ el('viaje').addEventListener('input', () => {
 });
 
 suscribirAsistencia(renderizarSolicitudes);
+suscribirIncidencias(() => {
+  renderizarIncidencias();
+  if (esEstudiante() && !el('resultados').hidden) mostrarResultados(rutaElegida?.id);
+});
+renderizarIncidencias();
 cambiarVista();
 async function conectarAsistencia() {
   try {
     const modo = await iniciarAsistencia();
     listo = true;
+    renderizarIncidencias();
     el('error-asistencia').textContent = '';
     el('conexion').textContent = modo === 'red' ? 'Conectado al servicio de asistencia' : 'Modo local · Sincronización entre pestañas';
     renderizarSolicitudes();

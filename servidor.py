@@ -13,10 +13,18 @@ ROOT = Path(__file__).resolve().parent
 ARCHIVOS = {
     "/": "index.html", "/index.html": "index.html", "/ayudante": "index.html",
     "/app.mjs": "app.mjs", "/solicitudes.mjs": "solicitudes.mjs",
-    "/cuenta.mjs": "cuenta.mjs", "/rutas.mjs": "rutas.mjs", "/campus.css": "campus.css", "/logo-usm.png": "logo-usm.png",
+    "/incidencias.mjs": "incidencias.mjs", "/cuenta.mjs": "cuenta.mjs", "/rutas.mjs": "rutas.mjs", "/campus.css": "campus.css", "/logo-usm.png": "logo-usm.png",
 }
 API = "/api/solicitudes"
 SOLICITUDES = {}
+INCIDENCIAS = {}
+API_INCIDENCIAS = '/api/incidencias'
+LUGARES = {'entrada', 'edificio-a', 'edificio-b', 'edificio-c', 'edificio-p', 'entrada-placeres', 'casino', 'biblioteca'}
+RAPIDAS = {
+    'ascensor-p': ('edificio-p', 'Ascensor Edificio P fuera de servicio'),
+    'rampa-c': ('edificio-c', 'Rampa Edificio C bloqueada'),
+    'acceso-humedo': ('entrada-placeres', 'Acceso húmedo / resbaloso'),
+}
 CANDADO = Lock()
 ARCHIVO_ESTADO = None
 
@@ -31,12 +39,44 @@ TRANSICIONES = {
 ETIQUETAS_CALIFICACION = ("Amable", "Paciente", "Puntual")
 
 
-def guardar(ident, solicitud):
+def guardar(ident, registro, incidencia=False):
+    destino = INCIDENCIAS if incidencia else SOLICITUDES
     if ARCHIVO_ESTADO is not None:
         temporal = ARCHIVO_ESTADO.with_suffix(ARCHIVO_ESTADO.suffix + ".tmp")
-        temporal.write_text(json.dumps({**SOLICITUDES, ident: solicitud}, ensure_ascii=False), encoding="utf-8")
+        estado = {"solicitudes": SOLICITUDES, "incidencias": INCIDENCIAS}
+        campo = "incidencias" if incidencia else "solicitudes"
+        estado[campo] = {**destino, ident: registro}
+        temporal.write_text(json.dumps(estado, ensure_ascii=False), encoding="utf-8")
         temporal.replace(ARCHIVO_ESTADO)
-    SOLICITUDES[ident] = solicitud
+    destino[ident] = registro
+
+
+def gestionar_incidencia(datos):
+    actor = identidad(datos.get("actor"))
+    ident = texto(datos.get("id"), 50)
+    rapida = RAPIDAS.get(ident)
+    if rapida is None:
+        validar_id(ident)
+    activa = datos.get("activa")
+    if type(activa) is not bool:
+        raise ValueError("Estado de incidencia inválido")
+    anterior = INCIDENCIAS.get(ident)
+    if anterior is None and not activa:
+        raise KeyError(ident)
+    if anterior and anterior["activa"] == activa:
+        return anterior
+    revision = anterior["revision"] + 1 if anterior else 0
+    if activa:
+        lugar, descripcion = rapida or (texto(datos.get("lugar"), 40), texto(datos.get("descripcion"), 140))
+        if lugar not in LUGARES or not descripcion:
+            raise ValueError("Selecciona un lugar e ingresa una descripción")
+        actual = {"id": ident, "lugar": lugar, "descripcion": descripcion, "tipo": ident if rapida else "personalizada",
+                  "activa": True, "revision": revision, "reportadaPor": actor["nombre"],
+                  "reportadaEn": datetime.now(timezone.utc).isoformat()}
+    else:
+        actual = {**anterior, "activa": False, "revision": revision}
+    guardar(ident, actual, incidencia=True)
+    return actual
 
 
 def validar_id(valor):
@@ -161,8 +201,8 @@ class Servidor(BaseHTTPRequestHandler):
         ruta = urlsplit(self.path).path
         if ruta == API:
             with CANDADO:
-                lista = list(SOLICITUDES.values())
-            self.json(200, {"solicitudes": lista})
+                estado = {"solicitudes": list(SOLICITUDES.values()), "incidencias": list(INCIDENCIAS.values())}
+            self.json(200, estado)
             return
         archivo = ARCHIVOS.get(ruta)
         if not archivo:
@@ -176,7 +216,7 @@ class Servidor(BaseHTTPRequestHandler):
 
     def do_POST(self):
         ruta = urlsplit(self.path).path
-        if ruta != API and not ruta.startswith(API + "/"):
+        if ruta not in (API, API_INCIDENCIAS) and not ruta.startswith(API + "/"):
             self.send_error(404)
             return
         try:
@@ -189,7 +229,9 @@ class Servidor(BaseHTTPRequestHandler):
             if not isinstance(datos, dict):
                 raise ValueError("Solicitud inválida")
             with CANDADO:
-                if ruta == API:
+                if ruta == API_INCIDENCIAS:
+                    resultado = gestionar_incidencia(datos)
+                elif ruta == API:
                     ident = validar_id(datos.get("id"))
                     resultado = SOLICITUDES.get(ident)
                     if resultado is None:
@@ -219,7 +261,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     ARCHIVO_ESTADO = args.datos.resolve()
     if ARCHIVO_ESTADO.exists():
-        SOLICITUDES.update(json.loads(ARCHIVO_ESTADO.read_text(encoding="utf-8")))
+        estado = json.loads(ARCHIVO_ESTADO.read_text(encoding="utf-8"))
+        SOLICITUDES.update(estado.get("solicitudes", estado))
+        INCIDENCIAS.update(estado.get("incidencias", {}))
     with ThreadingHTTPServer((args.host, args.port), Servidor) as http:
         print(f"CAE USM en http://{args.host}:{args.port}", flush=True)
         try:

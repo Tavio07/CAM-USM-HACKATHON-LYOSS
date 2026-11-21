@@ -188,3 +188,15 @@ main { padding-inline: clamp(12px, 4vw, 18px); }
 #panel-cuenta:has(.ranking) #titulo-cuenta { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .credito-campus { font-size: .7rem; color: #46576b; margin-top: 18px; }
 .credito-campus a { color: #004b85; }
+.reporte-campus { margin-top: 14px; box-shadow: none; background: #f8fbfe; }
+.reporte-campus summary { cursor: pointer; min-height: 44px; align-content: center; color: #00335c; font-weight: 700; }
+.reporte-campus form { padding-bottom: 10px; }
+.reporte-campus form button { margin-top: 8px; }
+.reporte-campus .opciones label { border-bottom: 1px solid #dce6ef; }
+.avisos-campus { border-left: 4px solid #c58000; border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; color: #553a0a; background: #fff3d4; font-size: .875rem; }
+.avisos-campus ul { margin: 4px 0 0; padding-inline-start: 17px; }
+.lista-incidencias { padding: 0; list-style: none; }
+.lista-incidencias li { margin: 6px 0; padding: 8px; border: 1px solid #dce6ef; border-radius: 8px; background: #fff; }
+.lista-incidencias li p { font-weight: 700; margin: 0 0 4px; overflow-wrap: anywhere; }
+.lista-incidencias small { display: block; margin-bottom: 6px; color: #46576b; }
+.lista-incidencias button { width: auto; color: #004b85; background: #fff; }
