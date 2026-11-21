@@ -1,0 +1,138 @@
+[
+  {
+    "rol": "202373045-2",
+    "password": "usm2026",
+    "nombreCompleto": "Daniela Soto",
+    "primerNombre": "Daniela",
+    "rut": "21.345.678-4",
+    "carrera": "Ingeniería Civil Informática",
+    "sede": "Casa Central Valparaíso",
+    "correoInstitucional": "daniela.soto@usm.cl",
+    "verificado": true,
+    "historialAyudas": [
+      {
+        "fecha": "2026-11-10T14:00:00Z",
+        "estrellas": 5,
+        "etiquetas": [
+          "Amable",
+          "Paciente"
+        ]
+      },
+      {
+        "fecha": "2026-11-11T14:00:00Z",
+        "estrellas": 5,
+        "etiquetas": []
+      },
+      {
+        "fecha": "2026-11-12T14:00:00Z",
+        "estrellas": 4,
+        "etiquetas": []
+      }
+    ]
+  },
+  {
+    "rol": "202473018-K",
+    "password": "usm2026",
+    "nombreCompleto": "Octavio Pereira",
+    "primerNombre": "Octavio",
+    "rut": "21.456.789-K",
+    "carrera": "Ingeniería Civil Industrial",
+    "sede": "Casa Central Valparaíso",
+    "correoInstitucional": "octavio.pereira@usm.cl",
+    "verificado": true,
+    "historialAyudas": []
+  },
+  {
+    "rol": "202273112-4",
+    "password": "usm2026",
+    "nombreCompleto": "Alma Rojas",
+    "primerNombre": "Alma",
+    "rut": "21.567.890-3",
+    "carrera": "Arquitectura",
+    "sede": "Casa Central Valparaíso",
+    "correoInstitucional": "alma.rojas@usm.cl",
+    "verificado": true,
+    "historialAyudas": [
+      {
+        "fecha": "2026-11-10T14:00:00Z",
+        "estrellas": 5,
+        "etiquetas": [
+          "Amable",
+          "Paciente"
+        ]
+      },
+      {
+        "fecha": "2026-11-11T14:00:00Z",
+        "estrellas": 5,
+        "etiquetas": []
+      },
+      {
+        "fecha": "2026-11-12T14:00:00Z",
+        "estrellas": 4,
+        "etiquetas": []
+      },
+      {
+        "fecha": "2026-11-13T14:00:00Z",
+        "estrellas": 5,
+        "etiquetas": []
+      }
+    ]
+  },
+  {
+    "rol": "202304089-7",
+    "password": "usm2026",
+    "nombreCompleto": "Diego Muñoz",
+    "primerNombre": "Diego",
+    "rut": "21.678.901-6",
+    "carrera": "Ingeniería Comercial",
+    "sede": "Casa Central Valparaíso",
+    "correoInstitucional": "diego.munoz@usm.cl",
+    "verificado": true,
+    "historialAyudas": [
+      {
+        "fecha": "2026-11-10T14:00:00Z",
+        "estrellas": 5,
+        "etiquetas": [
+          "Amable",
+          "Paciente"
+        ]
+      },
+      {
+        "fecha": "2026-11-11T14:00:00Z",
+        "estrellas": 4,
+        "etiquetas": []
+      },
+      {
+        "fecha": "2026-11-12T14:00:00Z",
+        "estrellas": 4,
+        "etiquetas": []
+      }
+    ]
+  },
+  {
+    "rol": "202173054-1",
+    "password": "usm2026",
+    "nombreCompleto": "Matías Silva",
+    "primerNombre": "Matías",
+    "rut": "21.789.012-8",
+    "carrera": "Ingeniería Civil Electrónica",
+    "sede": "Casa Central Valparaíso",
+    "correoInstitucional": "matias.silva@usm.cl",
+    "verificado": true,
+    "historialAyudas": [
+      {
+        "fecha": "2026-11-10T14:00:00Z",
+        "estrellas": 4,
+        "etiquetas": [
+          "Amable",
+          "Paciente"
+        ]
+      },
+      {
+        "fecha": "2026-11-11T14:00:00Z",
+        "estrellas": 4,
+        "etiquetas": []
+      }
+    ]
+  }
+]

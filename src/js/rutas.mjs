@@ -18,6 +18,11 @@ export const LIMITACIONES = {
     ['movilidad', 'Movilidad reducida'],
     ['visibilidad', 'Baja visibilidad'],
   ],
+  neuro: [
+    ['menos-estimulos', 'Menos estímulos · Reducir exposición al tránsito'],
+    ['recorrido-simple', 'Recorrido predecible · Menos cambios y cruces'],
+    ['orientacion-clara', 'Orientación clara · Evitar tramos oscuros'],
+  ],
   entorno: [
     ['lluvia', 'Lluvia'],
     ['viento', 'Viento fuerte'],
@@ -74,6 +79,15 @@ export const RUTAS_PREHECHAS = [
   { id: 'placeres-c', titulo: 'Portería Placeres y Edificio C', desde: 'entrada-placeres', hasta: 'edificio-c', forma: placeres.forma.slice(3), rampaC: true, viaPlaceres: true, escaleras: 0, exterior: true, minutos: 2, etiquetas: ['Al aire libre'], ida: [placeres.ida[2]], vuelta: ['Sigue el paso exterior hasta la portería de Entrada Placeres.'] },
 ];
 
+const conexiones = new Map();
+for (const ruta of RUTAS_PREHECHAS) {
+  for (const [origen, destino] of [[ruta.desde, ruta.hasta], [ruta.hasta, ruta.desde]]) {
+    const clave = origen + ':' + destino;
+    if (!conexiones.has(clave)) conexiones.set(clave, []);
+    conexiones.get(clave).push(ruta);
+  }
+}
+
 function evaluar(ruta, escaleras, minutos, restricciones) {
   const avisos = [];
   if (escaleras && restricciones.has('sin-escaleras')) {
@@ -88,11 +102,15 @@ function evaluar(ruta, escaleras, minutos, restricciones) {
   if (restricciones.has('visibilidad') && (ruta.oscuro || ruta.cruce || escaleras)) avisos.push('El trayecto exige atención al cruce, al túnel o a los escalones');
   if (restricciones.has('fatiga') && (escaleras || ruta.pendiente || minutos >= 4)) avisos.push('Recorrido de mayor esfuerzo o duración');
   if (restricciones.has('movilidad') && (escaleras || ruta.pendiente)) avisos.push('Escalones o pendiente que dificultan el desplazamiento');
-  return { estado: avisos.length ? 'AMARILLO' : 'VERDE', motivo: avisos.join(' · ') };
+  if (restricciones.has('menos-estimulos') && ruta.cruce) avisos.push('Cruce vehicular con posibles estímulos intensos');
+  if (restricciones.has('recorrido-simple') && (ruta.cruce || ruta.ida.length > 2)) avisos.push('El recorrido tiene cruces o varios cambios de dirección');
+  if (restricciones.has('orientacion-clara') && ruta.oscuro) avisos.push('Hay un tramo con poca luz para orientarse');
+  return { estado: avisos.length ? 'AMARILLO' : 'VERDE', motivo: avisos.join(' · '), penalizacion: 2 * avisos.length };
 }
 
 function conIncidencias(ruta, usaAscensor, restricciones, base, incidencias) {
   let estado = base.estado;
+  let penalizacion = base.penalizacion ?? 0;
   const motivos = base.motivo ? [base.motivo] : [];
   for (const aviso of incidencias) {
     if (!aviso.activa) continue;
@@ -107,8 +125,9 @@ function conIncidencias(ruta, usaAscensor, restricciones, base, incidencias) {
       estado = 'AMARILLO';
     }
     motivos.push(aviso.descripcion);
+    penalizacion += 3;
   }
-  return { estado, motivo: [...new Set(motivos)].join(' · ') };
+  return { estado, motivo: [...new Set(motivos)].join(' · '), penalizacion };
 }
 
 export function buscarRutas(origen, destino, limitaciones, incidencias = []) {
@@ -116,9 +135,8 @@ export function buscarRutas(origen, destino, limitaciones, incidencias = []) {
   const restricciones = new Set(limitaciones);
   const opciones = [];
 
-  for (const ruta of RUTAS_PREHECHAS) {
-    const ida = ruta.desde === origen.id && ruta.hasta === destino.id;
-    if (!ida && !(ruta.hasta === origen.id && ruta.desde === destino.id)) continue;
+  for (const ruta of conexiones.get(origen.id + ':' + destino.id) ?? []) {
+    const ida = ruta.desde === origen.id;
     const salida = ida ? origen : destino;
     const llegada = ida ? destino : origen;
     if ((llegada.piso ?? 1) !== 1 || (ruta.pisoP === undefined && (salida.piso ?? 1) !== 1)) continue;
@@ -131,6 +149,9 @@ export function buscarRutas(origen, destino, limitaciones, incidencias = []) {
       ' del Edificio P hasta el piso ' + (ida ? ruta.pisoP : salida.piso) + '.' : '';
     const minutos = Math.max(1, ruta.minutos - (!diferencia && ruta.pisoP !== undefined ? 1 : 0));
     const trazado = [puntos[ruta.desde], ...ruta.forma, puntos[ruta.hasta]];
+    const estado = conIncidencias(ruta, usaAscensor, restricciones,
+      evaluar(ruta, escaleras, minutos, restricciones), incidencias);
+    const peso = estado.estado === 'ROJO' ? null : minutos + Math.ceil(escaleras / 16) + estado.penalizacion;
     opciones.push({
       id: ruta.id,
       titulo: diferencia || ruta.pisoP === undefined ? ruta.titulo : ruta.pisoP === -1 ? 'Túnel subterráneo' : 'Entrada Placeres',
@@ -139,11 +160,12 @@ export function buscarRutas(origen, destino, limitaciones, incidencias = []) {
       pasos: ida ? [cambio, ...ruta.ida].filter(Boolean) : [...ruta.vuelta, cambio].filter(Boolean),
       trazado: ida ? trazado : trazado.reverse(),
       variante: ruta.acceso,
-      ...conIncidencias(ruta, usaAscensor, restricciones,
-        evaluar(ruta, escaleras, minutos, restricciones), incidencias),
+      peso,
+      estado: estado.estado,
+      motivo: estado.motivo,
     });
   }
 
   const prioridad = { VERDE: 0, AMARILLO: 1, ROJO: 2 };
-  return opciones.sort((a, b) => prioridad[a.estado] - prioridad[b.estado] || a.minutos - b.minutos);
+  return opciones.sort((a, b) => prioridad[a.estado] - prioridad[b.estado] || (a.peso ?? Infinity) - (b.peso ?? Infinity) || a.minutos - b.minutos);
 }

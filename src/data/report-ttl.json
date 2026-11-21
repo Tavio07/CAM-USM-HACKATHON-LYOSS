@@ -1,0 +1,8 @@
+{
+  "aglomeracion": 20,
+  "superficie": 90,
+  "obstaculo": 240,
+  "ascensor": 720,
+  "default": 30,
+  "extensionMinutos": 15
+}

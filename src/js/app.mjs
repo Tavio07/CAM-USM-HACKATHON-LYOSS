@@ -1,7 +1,8 @@
+import { usuarioPorRol, autenticar, accesosDemo } from './directorio.mjs';
 import { CENTRO_CAMPUS, LIMITACIONES, LUGARES, ORIGENES_QR, buscarRutas } from './rutas.mjs';
 import { prepararCuenta } from './cuenta.mjs';
 import { prepararIncidencias } from './incidencias.mjs';
-import { iniciarAsistencia, suscribirAsistencia, listarSolicitudes, prepararSolicitud, crearSolicitud, cambiarSolicitud, claveAyudante, ETIQUETAS_CALIFICACION, listarIncidencias, suscribirIncidencias } from './solicitudes.mjs';
+import { iniciarAsistencia, suscribirAsistencia, listarSolicitudes, prepararSolicitud, crearSolicitud, cambiarSolicitud, claveAyudante, ETIQUETAS_CALIFICACION, listarIncidencias, suscribirIncidencias, sincronizarExpiracionReportes } from './solicitudes.mjs';
 
 const el = id => document.getElementById(id);
 const lugares = new Map(LUGARES.map(lugar => [lugar.id, lugar]));
@@ -12,6 +13,7 @@ const estados = {
   ROJO: { color: '#C92A2A', texto: 'Rojo · Bloqueada' },
 };
 const leaflet = window.L;
+const mapasCampus = new Map();
 let mapaRutas;
 let capasRutas;
 let viaje;
@@ -28,15 +30,15 @@ let qrAplicado = false;
 function leerSesion() {
   try {
     const valor = JSON.parse(sessionStorage.getItem(CLAVE_SESION));
-    if (typeof valor?.nombre === 'string' && valor.nombre && typeof valor.rolUsm === 'string' && valor.rolUsm) {
-      return { nombre: valor.nombre, rolUsm: valor.rolUsm, modo: ['estudiante', 'ayudante'].includes(valor.modo) ? valor.modo : null };
-    }
-  } catch {}
-  return null;
+    const usuario = usuarioPorRol(valor?.rol);
+    return usuario ? { ...usuario, modo: ['estudiante', 'ayudante'].includes(valor.modo) ? valor.modo : null } : null;
+  } catch {
+    return null;
+  }
 }
 
 function guardarSesion() {
-  sessionStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
+  sessionStorage.setItem(CLAVE_SESION, JSON.stringify({ rol: sesion.rol, modo: sesion.modo }));
 }
 
 function identidad() {
@@ -86,6 +88,7 @@ function crearMapa(id) {
   el(id).append(aviso);
   tiles.on('tileerror', () => { aviso.hidden = false; });
   tiles.on('tileload', () => { aviso.hidden = true; });
+  mapasCampus.set(id, mapa);
   return mapa;
 }
 
@@ -172,6 +175,7 @@ function mostrarMapa(opciones, origen, destino, seleccion) {
   mapaRutas ??= crearMapa('mapa-rutas');
   if (!mapaRutas) return;
   mapaRutas.invalidateSize();
+  reportes.renderizarMarcadores();
   capasRutas ??= leaflet.layerGroup().addTo(mapaRutas);
   capasRutas.clearLayers();
   const coordenadas = [];
@@ -229,7 +233,7 @@ function tarjetaRuta(ruta, recomendada, opciones) {
   boton.textContent = ruta.titulo;
   const estado = document.createElement('p');
   estado.className = 'estado';
-  estado.textContent = estados[ruta.estado].texto + ' · ' + ruta.minutos + ' min aprox.' +
+  estado.textContent = estados[ruta.estado].texto + ' · ' + ruta.minutos + ' min aprox. · ' + (ruta.peso === null ? 'Sin paso' : ruta.peso + ' puntos de dificultad') +
     (recomendada ? ' · Recomendada' : '');
   const etiquetas = document.createElement('ul');
   etiquetas.className = 'etiquetas';
@@ -263,7 +267,7 @@ el('viaje').addEventListener('submit', event => {
   const limitaciones = new FormData(el('viaje')).getAll('limitaciones');
   viaje = {
     origen: leerPunto('origen'), destino: leerPunto('destino'),
-    limitaciones: limitaciones.filter(id => LIMITACIONES.fisicas.some(([clave]) => clave === id)),
+    limitaciones: limitaciones.filter(id => [...LIMITACIONES.fisicas, ...LIMITACIONES.neuro].some(([clave]) => clave === id)),
     entorno: limitaciones.filter(id => LIMITACIONES.entorno.some(([clave]) => clave === id)),
     comentarios: el('comentarios').value.trim(),
   };
@@ -273,6 +277,7 @@ el('viaje').addEventListener('submit', event => {
 
 function mostrarResultados(seleccionAnterior) {
   if (!viaje) return;
+  sincronizarExpiracionReportes();
   const opciones = buscarRutas(viaje.origen, viaje.destino, [...viaje.limitaciones, ...viaje.entorno], listarIncidencias());
   const recomendada = opciones.find(ruta => ruta.estado !== 'ROJO')?.id;
   const mismoPunto = viaje.origen.id === viaje.destino.id && viaje.origen.piso === viaje.destino.piso;
@@ -296,7 +301,8 @@ function describirPunto(punto) {
 
 const entrada = el('solicitud-entrante');
 const cuenta = prepararCuenta(renderizarSolicitudes);
-const renderizarIncidencias = prepararIncidencias(() => sesion, () => listo);
+const reportes = prepararIncidencias(() => sesion, () => listo, mapasCampus);
+reportes.alCerrar(renderizarSolicitudes);
 const esAyudante = () => sesion?.modo === 'ayudante';
 const esEstudiante = () => sesion?.modo === 'estudiante';
 const enCurso = solicitud => ['pendiente', 'aceptada', 'pendiente_confirmacion'].includes(solicitud?.estado);
@@ -332,6 +338,7 @@ function dibujarAsistencia(solicitud) {
   mapaAyudante.invalidateSize();
   capaAyudante ??= leaflet.layerGroup().addTo(mapaAyudante);
   capaAyudante.clearLayers();
+  reportes.renderizarMarcadores();
   const puntos = [];
   for (const [punto, etiqueta] of [[solicitud.origen, 'Encuentro'], [solicitud.destino, 'Destino']]) {
     const lugar = lugares.get(punto.id);
@@ -449,7 +456,7 @@ function renderizarSolicitudes() {
     delete entrada.dataset.id;
     return;
   }
-  if (!cuenta.abierta() && entrada.dataset.id !== nueva.id) {
+  if (!cuenta.abierta() && !reportes.abierta() && entrada.dataset.id !== nueva.id) {
     entrada.dataset.id = nueva.id;
     el('error-entrante').textContent = '';
     resumir('resumen-entrante', nueva);
@@ -458,6 +465,7 @@ function renderizarSolicitudes() {
 }
 
 function cambiarVista() {
+  reportes.renderizar();
   el('inicio-sesion').hidden = Boolean(sesion);
 
   el('elegir-seccion').hidden = !sesion || Boolean(sesion.modo);
@@ -468,7 +476,8 @@ function cambiarVista() {
   el('error-asistencia').hidden = !sesion?.modo;
   if (sesion) {
 
-    el('saludo').textContent = 'Hola, ' + sesion.nombre;
+    el('saludo').textContent = 'Hola, ' + sesion.primerNombre;
+    el('carrera-sesion').textContent = sesion.carrera;
   }
   idDibujado = undefined;
   if (esEstudiante()) {
@@ -480,22 +489,69 @@ function cambiarVista() {
   renderizarSolicitudes();
 }
 
-el('login').addEventListener('submit', event => {
+el('login').addEventListener('submit', async event => {
   event.preventDefault();
-  const campoNombre = el('login-nombre');
-  const campoRol = el('login-rol');
-  const nombre = campoNombre.value.trim().replace(/\s+/g, ' ');
-  const rolUsm = campoRol.value.trim().toUpperCase();
-  campoNombre.setCustomValidity(nombre ? '' : 'Ingresa tu nombre completo.');
-  campoRol.setCustomValidity(/^[0-9]+(?:-[0-9K])?$/.test(rolUsm) ? '' : 'Ingresa un ROL USM válido, por ejemplo 202373501-2.');
-  if (!event.currentTarget.reportValidity()) return;
-  sesion = { nombre, rolUsm, modo: null };
-  solicitudId = sessionStorage.getItem(claveSolicitud());
-  guardarSesion();
-  cambiarVista();
-  el('saludo').focus();
+  const boton = el('ingresar');
+  if (boton.disabled) return;
+  const rol = el('login-rol').value.replace(/\s/g, '').toUpperCase();
+  const password = el('login-password').value;
+  el('error-login').textContent = '';
+  boton.disabled = true;
+  try {
+    let usuario;
+    if (document.querySelector('meta[name="cae-api"]')) {
+      const respuesta = await fetch('./api/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rol, password }),
+      });
+      if (respuesta.status === 401) usuario = null;
+      else if (!respuesta.ok) throw new Error('El servicio de inicio de sesión no está disponible.');
+      else usuario = await respuesta.json();
+    } else usuario = autenticar(rol, password);
+    if (!usuario) {
+      el('error-login').textContent = 'El ROL USM o la contraseña no coinciden.';
+      return;
+    }
+    sesion = { ...usuario, modo: null };
+    solicitudId = sessionStorage.getItem(claveSolicitud());
+    guardarSesion();
+    el('login').reset();
+    ocultarClave();
+    cambiarVista();
+    el('saludo').focus();
+  } catch {
+    el('error-login').textContent = 'No se pudo iniciar sesión. Intenta de nuevo.';
+  } finally {
+    boton.disabled = false;
+  }
 });
-el('login').addEventListener('input', event => event.target.setCustomValidity(''));
+
+function ocultarClave() {
+  el('login-password').type = 'password';
+  el('ver-clave').textContent = 'Mostrar';
+  el('ver-clave').setAttribute('aria-pressed', 'false');
+}
+
+el('ver-clave').addEventListener('click', () => {
+  if (el('login-password').type === 'text') ocultarClave();
+  else {
+    el('login-password').type = 'text';
+    el('ver-clave').textContent = 'Ocultar';
+    el('ver-clave').setAttribute('aria-pressed', 'true');
+  }
+});
+
+el('login').addEventListener('input', () => { el('error-login').textContent = ''; });
+for (const acceso of accesosDemo) {
+  const boton = document.createElement('button');
+  boton.type = 'button';
+  boton.textContent = acceso.nombreCompleto + ' · ' + acceso.rol;
+  boton.addEventListener('click', () => {
+    el('login-rol').value = acceso.rol;
+    el('login-password').value = acceso.password;
+    el('login').requestSubmit();
+  });
+  el('accesos-demo').append(boton);
+}
 
 function elegirSeccion(modo) {
   if (!sesion) return;
@@ -650,7 +706,7 @@ el('calificacion').addEventListener('submit', event => event.preventDefault());
 
 el('viaje').addEventListener('input', () => {
   const seleccionadas = new Set(new FormData(el('viaje')).getAll('limitaciones'));
-  const titulos = { fisicas: 'Limitaciones y condiciones', entorno: 'Entorno y clima' };
+  const titulos = { fisicas: 'Limitaciones y condiciones', entorno: 'Entorno y clima', neuro: 'Apoyos para neurodivergencias' };
   for (const [grupo, opciones] of Object.entries(LIMITACIONES)) {
     el('contador-' + grupo).textContent = titulos[grupo] + ' (' +
       opciones.filter(([id]) => seleccionadas.has(id)).length + ')';
@@ -659,16 +715,16 @@ el('viaje').addEventListener('input', () => {
 
 suscribirAsistencia(renderizarSolicitudes);
 suscribirIncidencias(() => {
-  renderizarIncidencias();
+  reportes.renderizar();
   if (esEstudiante() && !el('resultados').hidden) mostrarResultados(rutaElegida?.id);
 });
-renderizarIncidencias();
+reportes.renderizar();
 cambiarVista();
 async function conectarAsistencia() {
   try {
     const modo = await iniciarAsistencia();
     listo = true;
-    renderizarIncidencias();
+    reportes.renderizar();
     el('error-asistencia').textContent = '';
     el('conexion').textContent = modo === 'red' ? 'Conectado al servicio de asistencia' : 'Modo local · Sincronización entre pestañas';
     renderizarSolicitudes();

@@ -86,13 +86,12 @@ button:disabled { opacity: .6; cursor: default; }
 .posicion, .puntaje { white-space: nowrap; }
 .acceso button { margin-top: 12px; }
 .opcion-seccion { background: #fff; color: #004b85; }
-#abrir-ranking, #volver-ayudante { width: auto; margin-bottom: 10px; }
+#volver-ayudante { width: auto; margin-bottom: 10px; }
 h1, h2, h3 { font-family: Montserrat, system-ui, sans-serif; }
 .barra { position: relative; z-index: 1100; flex-wrap: nowrap; padding-inline: 10px; gap: 5px; }
 .barra h1 { font-size: 1.12rem; white-space: nowrap; }
 .logo { flex: 0 0 86px; }
 .sesion-activa { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; margin-inline-start: auto; }
-.control-cuenta { min-height: 44px; width: auto; display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; color: #fff; background: #00335c; border: 1px solid #ffffff70; border-radius: 18px; white-space: nowrap; font-size: .75rem; }
 .control-cuenta:focus-visible { outline-color: #f7a800; }
 .control-cuenta svg { width: 13px; height: 13px; fill: #f7a800; flex: 0 0 13px; }
 #nombre-cuenta { max-width: clamp(42px, 17vw, 76px); overflow: hidden; text-overflow: ellipsis; }
@@ -135,13 +134,13 @@ input, select, textarea { font-family: inherit; }
   min-height: 62px;
   gap: 5px;
   padding: 8px clamp(7px, 2.5vw, 11px);
-  background: linear-gradient(105deg, var(--azul-profundo), var(--azul-usm));
-  box-shadow: 0 4px 14px #00284725;
+  background: linear-gradient(105deg, #00335c, #004b85 70%, #07528b);
+  border-bottom: 2px solid #f5b400;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 .barra h1 { font-size: clamp(1rem, 4.8vw, 1.18rem); font-weight: 800; letter-spacing: -.04em; }
 .logo { flex: 0 0 86px; }
 .sesion-activa { align-items: center; gap: 5px; }
-.control-cuenta { height: 44px; min-height: 44px; flex-shrink: 0; background: #002c5280; font-weight: 700; }
 #abrir-bandeja { flex-shrink: 1; min-width: 0; }
 #nombre-cuenta { min-width: 0; }
 .bandeja-cuenta { width: min(258px, calc(100vw - 18px)); box-shadow: 0 12px 30px #0028472e; }
@@ -200,3 +199,88 @@ main { padding-inline: clamp(12px, 4vw, 18px); }
 .lista-incidencias li p { font-weight: 700; margin: 0 0 4px; overflow-wrap: anywhere; }
 .lista-incidencias small { display: block; margin-bottom: 6px; color: #46576b; }
 .lista-incidencias button { width: auto; color: #004b85; background: #fff; }
+
+src/server/servidor.py:74:                  "activa": True, "revision": revision, "reportadaPor": actor["nombre"], "rolReportante": actor["rolUsm"],
+src/server/servidor.py:75:                  "reportadaEn": datetime.now(timezone.utc).isoformat()}
+.apoyo-neuro { margin: 8px; }
+#panel-incidencias { overscroll-behavior: contain; }
+#abrir-incidencias { flex: 0 0 auto; }
+@media (max-width: 400px) {
+  .barra h1 { font-size: 1rem; }
+}
+@media (max-width: 340px) {
+  .barra:has(#sesion-activa:not([hidden])) { flex-wrap: wrap; }
+  .barra .sesion-activa { margin-left: auto; }
+}
+
+.barra:has(#sesion-activa:not([hidden])) .logo { width: 62px; flex-basis: 62px; }
+.sesion-activa > .control-cuenta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  gap: 6px;
+  height: 38px;
+  min-height: 38px;
+  width: auto;
+  margin: 0;
+  padding: 0 7px;
+  color: #fff;
+  font-size: .75rem;
+  line-height: 1;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  transition: background-color 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.sesion-activa > #abrir-ranking { border-color: #ffd2719c; box-shadow: inset 0 0 0 1px #ffd27119; }
+.sesion-activa > #abrir-bandeja { flex-shrink: 1; min-width: 0; }
+.control-cuenta .icono-reportar { fill: none; stroke: #d4e7f8; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+#abrir-bandeja[title]:not([title=""])::before {
+  content: attr(title);
+  content: attr(title) / "";
+  display: block;
+  box-sizing: content-box;
+  flex: 0 0 1ch;
+  width: 1ch;
+  height: 1em;
+  overflow: hidden;
+  border: solid transparent;
+  border-width: 5px 7px;
+  border-radius: 50%;
+  color: #ffe3a3;
+  background: #ffffff28;
+  font: 700 10px/1 monospace;
+  text-align: left;
+  text-transform: uppercase;
+  text-overflow: clip;
+}
+@media (hover: hover) {
+  .sesion-activa > .control-cuenta:hover { background: rgba(255, 255, 255, 0.18); box-shadow: 0 2px 6px #001a3270; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sesion-activa > .control-cuenta { transition: none; }
+}
+.barra:has(#sesion-activa:not([hidden])) { padding-inline: 4px; gap: 2px; }
+  .barra:has(#sesion-activa:not([hidden])) h1 { font-size: .875rem; }
+  .barra:has(#sesion-activa:not([hidden])) .logo { width: 37px; flex-basis: 37px; }
+  .sesion-activa { gap: 3px; }
+  .sesion-activa > .control-cuenta { padding-inline: 4px; font-size: .6875rem; }
+  .sesion-activa .control-cuenta svg { width: 11px; height: 11px; flex-basis: 11px; }
+  #abrir-bandeja[title]:not([title=""])::before { border-width: 4px 6px; }
+.clave-login { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+.clave-login button { width: auto; color: #004b85; background: #fff; }
+.accesos-demo { margin-top: 14px; }
+.accesos-demo summary { cursor: pointer; color: #004b85; font-weight: 700; }
+.accesos-demo button { background: #ebf3fa; color: #004b85; margin-top: 5px; font-size: .875rem; }
+.duraciones-rapidas, .acciones-tiempo { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 6px; }
+.duraciones-rapidas button, .acciones-tiempo button { width: auto; min-height: 40px; color: #004b85; background: #fff; font-size: .75rem; }
+.acciones-tiempo details { min-width: 0; width: 100%; }
+.acciones-tiempo summary { min-height: 32px; cursor: pointer; font-size: .8rem; }
+.acciones-tiempo input { max-width: 105px; margin-right: 5px; }
+.reloj-incidencia { display: block; font-weight: 700; }
+.marca-incidencia { display: grid; place-items: center; border: 2px solid #fff; border-radius: 50%; background: #f7a800; color: #002847; font: 800 14px Inter, system-ui, sans-serif; box-shadow: 0 2px 5px #00284755; }
+.leaflet-popup-content .acciones-tiempo { max-width: 225px; }

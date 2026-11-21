@@ -3,7 +3,7 @@ import { obtenerRanking } from './solicitudes.mjs';
 const el = id => document.getElementById(id);
 const promedio = new Intl.NumberFormat('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const fecha = new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeStyle: 'short' });
-const titulos = { ranking: 'Ranking de Ayudantes CAE USM', perfil: 'Mi perfil', historial: 'Historial de ayudas' };
+const titulos = { ranking: 'Ranking de Ayudantes CAM USM', perfil: 'Mi perfil', historial: 'Historial de ayudas' };
 const estados = {
   pendiente: 'Pendiente', aceptada: 'En curso', rechazada: 'Rechazada',
   pendiente_confirmacion: 'Pendiente de confirmación o calificación', completada: 'Completada',
@@ -64,8 +64,9 @@ function perfil(sesion, filas, solicitudes) {
   const reconocimiento = nodo('ul', '', 'etiquetas');
   for (const etiqueta of etiquetas) reconocimiento.append(nodo('li', etiqueta));
   return [
-    nodo('p', 'Usuario Verificado USM · Demo', 'insignia-cuenta'),
-    definiciones([['Nombre completo', sesion.nombre], ['ROL USM', sesion.rolUsm]]),
+    nodo('p', 'Cuenta Institucional Verificada USM', 'insignia-cuenta'),
+    definiciones([['Nombre completo', sesion.nombreCompleto], ['ROL USM', sesion.rol], ['RUT', sesion.rut],
+      ['Carrera', sesion.carrera], ['Sede', sesion.sede], ['Correo institucional', sesion.correoInstitucional]]),
     nodo('h3', 'Evaluación promedio'), evaluacion,
     definiciones([['Ayudas dadas', String(datos?.ayudasCompletadas ?? 0)],
       ['Posición en el ranking', datos ? '#' + (indice + 1) : 'Sin posición']]),
@@ -180,7 +181,7 @@ export function prepararCuenta(alCerrar) {
       solicitudes = lista;
       el('sesion-activa').hidden = !sesion?.modo;
       const nombre = sesion?.nombre ?? '';
-      el('nombre-cuenta').textContent = nombre.split(/\s+/)[0];
+      el('nombre-cuenta').textContent = sesion?.primerNombre ?? '';
       botonBandeja.title = nombre;
       if (!sesion?.modo) {
         toggleBandeja(false);

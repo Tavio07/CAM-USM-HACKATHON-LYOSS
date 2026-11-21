@@ -1,3 +1,5 @@
+import { REPORT_TTL_MINUTES, categoriaIncidencia, normalizarIncidencia, minutosValidos } from './ttl.mjs';
+import { historialInstitucional, usuarioPorRol } from './directorio.mjs';
 import { INCIDENCIAS_RAPIDAS, LUGARES } from './rutas.mjs';
 
 const API = './api/solicitudes';
@@ -16,12 +18,6 @@ const TRANSICIONES = {
   calificar: ['pendiente_confirmacion', 'completada'],
 };
 export const ETIQUETAS_CALIFICACION = ['Amable', 'Paciente', 'Puntual'];
-const BASE_RANKING = [
-  { nombre: 'Alma Rojas', carrera: 'Ingeniería Civil', puntajeTotal: 49, ayudasCompletadas: 10 },
-  { nombre: 'Diego Muñoz', carrera: 'Ingeniería Informática', puntajeTotal: 38, ayudasCompletadas: 8 },
-  { nombre: 'Camila Soto', carrera: 'Arquitectura', puntajeTotal: 27, ayudasCompletadas: 6 },
-  { nombre: 'Matías Silva', carrera: 'Ingeniería Electrónica', puntajeTotal: 17, ayudasCompletadas: 4 },
-];
 
 export function claveAyudante(nombre) {
   return nombre.trim().normalize('NFC').toLocaleLowerCase('es-CL');
@@ -38,13 +34,14 @@ export function obtenerRanking(solicitudes) {
     if (estado !== 'completada' || !ayudante?.nombre || !Number.isInteger(puntos) || puntos < 1 || puntos > 5) continue;
     const clave = clavePerfil(ayudante);
     const fila = filas.get(clave) ?? { ...ayudante, puntajeTotal: 0, ayudasCompletadas: 0 };
-    fila.nombre = ayudante.nombre;
+    const usuario = usuarioPorRol(ayudante.rolUsm);
+    fila.nombre = usuario?.nombreCompleto ?? ayudante.nombre;
+    fila.carrera = usuario?.carrera;
     fila.puntajeTotal += puntos;
     fila.ayudasCompletadas += 1;
     filas.set(clave, fila);
   }
-  const ejemplos = filas.size < 4 ? BASE_RANKING : [];
-  return [...filas.values(), ...ejemplos].map(fila => ({ ...fila, promedio: fila.puntajeTotal / fila.ayudasCompletadas }))
+  return [...filas.values()].map(fila => ({ ...fila, promedio: fila.puntajeTotal / fila.ayudasCompletadas }))
     .sort((a, b) => b.ayudasCompletadas - a.ayudasCompletadas || b.promedio - a.promedio || a.nombre.localeCompare(b.nombre, 'es'));
 }
 const oyentes = new Set();
@@ -66,8 +63,41 @@ function notificar(datos) {
   if (fusionar(registros, datos)) for (const oyente of oyentes) oyente();
 }
 
+let firmaIncidencias = '';
+let limpiandoLocal = false;
+
 function notificarIncidencias(datos) {
-  if (fusionar(incidencias, datos)) for (const oyente of oyentesIncidencias) oyente();
+  fusionar(incidencias, datos.map(item => normalizarIncidencia(item)));
+  sincronizarExpiracionReportes();
+}
+
+export function sincronizarExpiracionReportes() {
+  const ahora = Date.now();
+  const activas = [...incidencias.values()].filter(item => item.activa && ahora < item.expiraEn);
+  const firma = activas.map(item => item.id + ':' + item.revision).join('|');
+  if (firma !== firmaIncidencias) {
+    firmaIncidencias = firma;
+    for (const oyente of oyentesIncidencias) oyente();
+  }
+  if (modo !== 'local' || limpiandoLocal ||
+      ![...incidencias.values()].some(item => item.activa && ahora >= item.expiraEn)) return;
+  limpiandoLocal = true;
+  conBloqueoIncidencias(() => {
+    const lista = leerIncidencias().map(item => normalizarIncidencia(item, ahora));
+    const expiradas = [];
+    for (const item of lista) {
+      if (item.activa && ahora >= item.expiraEn) {
+        item.activa = item.activo = false;
+        item.revision += 1;
+        expiradas.push(item);
+      }
+    }
+    if (expiradas.length) {
+      localStorage.setItem(CLAVE_INCIDENCIAS, JSON.stringify(lista));
+      notificarIncidencias(expiradas);
+      canal?.postMessage({ modo, incidencias: expiradas });
+    }
+  }).finally(() => { limpiandoLocal = false; }).catch(() => {});
 }
 
 function leerLocal() {
@@ -102,7 +132,15 @@ export async function iniciarAsistencia() {
   if (!document.querySelector('meta[name="cae-api"]')) {
     modo = 'local';
     notificar(leerLocal());
-    notificarIncidencias(leerIncidencias());
+    const anteriores = await conBloqueoIncidencias(() => {
+      const guardadas = leerIncidencias();
+      const actuales = guardadas.map(item => normalizarIncidencia(item));
+      if (JSON.stringify(guardadas) !== JSON.stringify(actuales)) {
+        localStorage.setItem(CLAVE_INCIDENCIAS, JSON.stringify(actuales));
+      }
+      return actuales;
+    });
+    notificarIncidencias(anteriores);
     return modo;
   }
   await consultar();
@@ -117,7 +155,7 @@ export function suscribirAsistencia(oyente) {
 }
 
 export function listarSolicitudes() {
-  return [...registros.values()].sort((a, b) => a.creadaEn.localeCompare(b.creadaEn));
+  return [...registros.values(), ...historialInstitucional].sort((a, b) => a.creadaEn.localeCompare(b.creadaEn));
 }
 
 function guardarLocal(operar) {
@@ -182,7 +220,9 @@ function actorValido(actor) {
       typeof actor.rolUsm !== 'string' || actor.rolUsm.length > 24 || !/^[0-9]+(?:-[0-9K])?$/.test(actor.rolUsm)) {
     throw new Error('La acción requiere una sesión USM válida.');
   }
-  return { nombre: actor.nombre.trim(), rolUsm: actor.rolUsm };
+  const usuario = usuarioPorRol(actor.rolUsm);
+  if (!usuario) throw new Error('El ROL no está en el directorio USM.');
+  return { nombre: usuario.nombreCompleto, rolUsm: usuario.rol };
 }
 
 function verificarActor(solicitud, accion, actor) {
@@ -224,11 +264,15 @@ function leerIncidencias() {
 }
 
 export function listarIncidencias() {
-  return [...incidencias.values()].filter(item => item.activa).sort((a, b) => b.reportadaEn.localeCompare(a.reportadaEn));
+  return [...incidencias.values()].filter(item => item.activa && Date.now() < item.expiraEn).sort((a, b) => b.creadoEn - a.creadoEn);
 }
 
 export function suscribirIncidencias(oyente) {
   oyentesIncidencias.add(oyente);
+}
+
+function conBloqueoIncidencias(operar) {
+  return navigator.locks ? navigator.locks.request(CLAVE_INCIDENCIAS, operar) : Promise.resolve().then(operar);
 }
 
 export async function cambiarIncidencia(datos) {
@@ -239,27 +283,46 @@ export async function cambiarIncidencia(datos) {
   if (modo === 'red') {
     nuevo = await pedir('./api/incidencias', { ...datos, id, actor });
   } else {
-    const guardar = () => {
-      const lista = leerIncidencias();
+    nuevo = await conBloqueoIncidencias(() => {
+      const lista = leerIncidencias().map(item => normalizarIncidencia(item));
       const indice = lista.findIndex(item => item.id === id);
       const anterior = lista[indice];
-      if ((anterior?.activa ?? false) === datos.activa) return anterior;
+      const ahora = Date.now();
+      const vigente = anterior?.activa && ahora < anterior.expiraEn;
       const revision = (anterior?.revision ?? -1) + 1;
-      const rapida = INCIDENCIAS_RAPIDAS.find(item => item.id === id);
-      const lugar = rapida?.lugar ?? datos.lugar;
-      const descripcion = (rapida?.descripcion ?? datos.descripcion ?? '').trim();
-      if (datos.activa && (!LUGARES.some(item => item.id === lugar) || !descripcion || descripcion.length > 140)) {
-        throw new Error('Selecciona un lugar e ingresa una descripción de hasta 140 caracteres.');
+      let actual;
+      if (datos.accion === 'editar' || datos.accion === 'extender') {
+        if (!vigente) throw new Error('Este aviso ya no está activo.');
+        const duracionMinutos = datos.accion === 'extender'
+          ? anterior.duracionMinutos + REPORT_TTL_MINUTES.extensionMinutos : datos.duracionMinutos;
+        if (!minutosValidos(duracionMinutos)) throw new Error('Ingresa una duración válida de al menos 1 minuto.');
+        actual = { ...anterior, duracionMinutos, revision, expiraEn: datos.accion === 'extender'
+          ? anterior.expiraEn + REPORT_TTL_MINUTES.extensionMinutos * 60000 : ahora + duracionMinutos * 60000 };
+      } else if (!datos.activa) {
+        if (!anterior || !anterior.activa) return anterior;
+        actual = { ...anterior, activa: false, activo: false, revision };
+      } else {
+        if (vigente) return anterior;
+        const rapida = INCIDENCIAS_RAPIDAS.find(item => item.id === id);
+        const lugar = rapida?.lugar ?? datos.lugar;
+        const descripcion = (rapida?.descripcion ?? datos.descripcion ?? '').trim();
+        const tipo = rapida?.id ?? 'personalizada';
+        const categoria = categoriaIncidencia(tipo, datos.categoria);
+        const duracionMinutos = datos.duracionMinutos ?? REPORT_TTL_MINUTES[categoria];
+        if (!LUGARES.some(item => item.id === lugar) || !descripcion || descripcion.length > 140 ||
+            !minutosValidos(duracionMinutos)) {
+          throw new Error('Revisa el lugar, la descripción y la duración del aviso.');
+        }
+        actual = { id, lugar, descripcion, tipo, categoria, activa: true, activo: true, revision,
+          reportadaPor: actor.nombre, rolReportante: actor.rolUsm, reportadaEn: new Date(ahora).toISOString(),
+          creadoPorNombre: actor.nombre, creadoPorRol: actor.rolUsm,
+          creadoEn: ahora, duracionMinutos, expiraEn: ahora + duracionMinutos * 60000 };
       }
-      const actual = datos.activa ? { id, lugar, descripcion, tipo: rapida?.id ?? 'personalizada',
-        activa: true, reportadaPor: actor.nombre, reportadaEn: new Date().toISOString(), revision }
-        : { ...anterior, activa: false, revision };
       if (indice < 0) lista.push(actual);
       else lista[indice] = actual;
       localStorage.setItem(CLAVE_INCIDENCIAS, JSON.stringify(lista));
       return actual;
-    };
-    nuevo = navigator.locks ? await navigator.locks.request(CLAVE_INCIDENCIAS, guardar) : guardar();
+    });
   }
   if (nuevo) {
     notificarIncidencias([nuevo]);

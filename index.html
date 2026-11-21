@@ -7,18 +7,22 @@
   <title>CAM USM · Movilidad en Casa Central</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap">
-  <link rel="stylesheet" href="./campus.css">
+  <link rel="stylesheet" href="./src/styles/campus.css">
   <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="./app.mjs"></script>
+  <script type="module" src="./src/js/app.mjs"></script>
 </head>
 <body>
   <header class="barra">
     <h1>CAM <span>USM</span></h1>
-    <span class="logo"><img src="./logo-usm.png" alt="Universidad Técnica Federico Santa María"></span>
+    <span class="logo"><img src="./src/assets/logo-usm.png" alt="Universidad Técnica Federico Santa María"></span>
     <div id="sesion-activa" class="sesion-activa" hidden>
       <button id="abrir-ranking" class="control-cuenta" type="button" aria-haspopup="dialog">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 2.9 6.3 6.9.8-5.1 4.8 1.4 7L12 17.5 5.9 21l1.4-7L2.2 9.1l6.9-.8Z"/></svg>
         Ranking
+      </button>
+      <button id="abrir-incidencias" class="control-cuenta" type="button" aria-haspopup="dialog">
+        <svg class="icono-reportar" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 6 0 9-5v14l-9-5H3zM9 14l2 5M21 9v6" /></svg>
+        Reportar
       </button>
       <button id="abrir-bandeja" class="control-cuenta" type="button" aria-expanded="false" aria-controls="bandeja-cuenta">
         <span id="nombre-cuenta"></span><span aria-hidden="true">▾</span>
@@ -37,16 +41,22 @@
       <h2 id="titulo-login" tabindex="-1">Inicia sesión USM</h2>
       <p class="nota">Acceso institucional simulado para la demo.</p>
       <form id="login">
-        <label for="login-nombre">Nombre completo</label>
-        <input id="login-nombre" autocomplete="name" required maxlength="80" placeholder="Octavio Pereira">
         <label for="login-rol">ROL USM</label>
-        <input id="login-rol" required maxlength="24" autocapitalize="characters" spellcheck="false" placeholder="202373501-2">
-        <button class="principal" type="submit">Ingresar</button>
+        <input id="login-rol" autocomplete="username" required maxlength="24" autocapitalize="characters" spellcheck="false" placeholder="202373045-2">
+        <label for="login-password">Contraseña</label>
+        <div class="clave-login">
+          <input id="login-password" type="password" autocomplete="current-password" required>
+          <button id="ver-clave" type="button" aria-pressed="false">Mostrar</button>
+        </div>
+        <p id="error-login" role="alert"></p>
+        <button id="ingresar" class="principal" type="submit">Ingresar con cuenta USM</button>
       </form>
+      <details class="accesos-demo"><summary>Accesos de demostración</summary><div id="accesos-demo"></div></details>
     </section>
     <section id="elegir-seccion" class="panel acceso" hidden aria-labelledby="saludo">
       <p class="campus-insignia">Comunidad Sansana</p>
       <h2 id="saludo" tabindex="-1"></h2>
+      <p id="carrera-sesion" class="nota"></p>
       <p>¿Qué harás hoy?</p>
       <button id="necesito-ayuda" class="principal" type="button"><span class="accion-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span><span><strong>Necesito ayuda</strong><small>Busca una ruta o pide acompañamiento</small></span></button>
       <button id="quiero-ayudar" class="opcion-seccion" type="button"><span class="accion-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20S3 15 3 9.5a4.5 4.5 0 0 1 9-1 4.5 4.5 0 0 1 9 1C21 15 12 20 12 20Z"/></svg></span><span><strong>Quiero ayudar</strong><small>Acompaña a alguien en el campus</small></span></button>
@@ -58,6 +68,10 @@
       <section id="titulo-filtros" tabindex="-1" class="panel filtros" aria-label="Filtros del recorrido">
         <details><summary id="contador-fisicas">Limitaciones y condiciones (0)</summary><div id="fisicas" class="opciones"></div></details>
         <details><summary id="contador-entorno">Entorno y clima (0)</summary><div id="entorno" class="opciones"></div></details>
+        <details><summary id="contador-neuro">Apoyos para neurodivergencias (0)</summary>
+          <p class="nota apoyo-neuro">Si tienes TEA, TDAH u otra neurodivergencia, elige solo lo que te ayude en este viaje.</p>
+          <div id="neuro" class="opciones"></div>
+        </details>
       </section>
       <section class="panel" aria-labelledby="titulo-origen">
         <h2 id="titulo-origen">¿Dónde estás?</h2>
@@ -143,22 +157,7 @@
         <div id="mapa-ayudante" class="mapa" role="region" aria-label="Punto de encuentro y ruta de asistencia"></div>
         <button id="finalizar" class="principal" type="button">Finalizar asistencia</button>
       </div>
-      <details class="panel reporte-campus">
-        <summary>Reportar estado del campus</summary>
-        <div class="opciones" id="incidencias-rapidas"></div>
-        <form id="publicar-incidencia">
-          <label for="lugar-incidencia">Lugar o edificio</label>
-          <select id="lugar-incidencia" required><option value="">Selecciona un lugar</option></select>
-          <label for="descripcion-incidencia">Descripción breve</label>
-          <input id="descripcion-incidencia" maxlength="140" placeholder="Ej. Ascensor detenido en piso 2" required>
-          <button id="publicar-aviso" class="principal" type="submit">Publicar aviso</button>
-        </form>
-        <p id="estado-incidencias" role="status"></p>
-        <p id="error-incidencias" role="alert"></p>
-        <h3>Incidencias activas</h3>
-        <p id="sin-incidencias" class="nota">No hay incidencias activas.</p>
-        <ul id="lista-incidencias" class="lista-incidencias"></ul>
-      </details>
+
       <dialog id="solicitud-entrante" aria-labelledby="titulo-entrante">
         <h2 id="titulo-entrante">¡Nueva solicitud de acompañamiento!</h2>
         <dl id="resumen-entrante"></dl>
@@ -169,6 +168,32 @@
         </div>
       </dialog>
     </section>
+    <dialog id="panel-incidencias" class="reporte-campus" aria-labelledby="titulo-incidencias">
+      <div class="encabezado-panel-cuenta">
+        <h2 id="titulo-incidencias" tabindex="-1">Reportar estado del campus</h2>
+        <button id="cerrar-incidencias" aria-label="Cerrar reportes" type="button">×</button>
+      </div>
+      <p class="nota">Avisa sobre obstáculos, iluminación, ruido u otras condiciones del lugar.</p>
+        <div class="opciones" id="incidencias-rapidas"></div>
+        <form id="publicar-incidencia">
+          <label for="lugar-incidencia">Lugar o edificio</label>
+          <select id="lugar-incidencia" required><option value="">Selecciona un lugar</option></select>
+          <label for="categoria-incidencia">Categoría</label>
+          <select id="categoria-incidencia"></select>
+          <label for="descripcion-incidencia">Descripción breve</label>
+          <input id="descripcion-incidencia" maxlength="140" placeholder="Ej. Ascensor detenido en piso 2" required>
+          <label for="duracion-incidencia">Duración del reporte (minutos)</label>
+          <input id="duracion-incidencia" type="number" min="1" step="1" required>
+          <div id="duraciones-rapidas" class="duraciones-rapidas"></div>
+          <button id="publicar-aviso" class="principal" type="submit">Publicar aviso</button>
+        </form>
+        <p id="estado-incidencias" role="status"></p>
+        <p id="error-incidencias" role="alert"></p>
+        <h3>Incidencias activas</h3>
+        <div class="opciones"><label><input id="solo-mis-incidencias" type="checkbox"> Mostrar solo mis avisos</label></div>
+        <p id="sin-incidencias" class="nota">No hay incidencias activas.</p>
+        <ul id="lista-incidencias" class="lista-incidencias"></ul>
+      </dialog>
     <dialog id="panel-cuenta" aria-label="Cuenta CAM USM">
       <div class="encabezado-panel-cuenta">
         <h2 id="titulo-cuenta" tabindex="-1"></h2>
