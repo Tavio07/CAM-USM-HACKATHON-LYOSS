@@ -12,21 +12,35 @@ El acceso consulta un directorio ficticio del repositorio, incluso sin servidor.
 
 ## Cómo se recomiendan las rutas
 
-El motor describe el campus como un **multigrafo de corredores precargados**. Los lugares de `src/js/rutas.mjs` son nodos con coordenadas y, cuando corresponde, pisos. Cada alternativa registrada es una conexión bidireccional que agrupa un corredor conocido y sus indicaciones. Entre el Edificio P y el C hay conexiones paralelas por el túnel o por Entrada Placeres, con variantes de escalera y ascensor. La geometría dibujada en Leaflet es aproximada.
+El campus se representa como un **multigrafo de corredores precargados**. En [rutas.mjs](src/js/rutas.mjs), los nodos son ubicaciones del campus con coordenadas y, cuando corresponde, pisos. Las conexiones son bidireccionales y llevan sus propios pasos, barreras y trazado. Puede haber varias conexiones entre los mismos puntos.
 
-El motor consulta las conexiones registradas entre el origen y destino, y ajusta el cambio de nivel al piso elegido. Si la combinación de puntos o pisos carece de un recorrido registrado, ofrece solicitar ayuda. El catálogo de la demo no encadena corredores para inventar recorridos.
+- **Edificio P ↔ Edificio C:** variantes por el túnel y por Entrada Placeres, con escalera o ascensor según el piso.
+- **Edificio C ↔ Biblioteca:** cuatro corredores por CIAC y Patio Central, piscina y vestidores, Plaza del Gran Árbol o Entrada Placeres. Esta última opción evita la escalera inicial del Hall C. Su continuidad sin peldaños sigue pendiente de verificar en terreno.
 
-Para cada alternativa se calcula un semáforo y un peso:
+El motor compara únicamente las alternativas registradas para los puntos y pisos elegidos. Los trazados, tiempos y cantidades de escalones son estimaciones del prototipo. Si no hay un recorrido registrado o todas las alternativas quedan bloqueadas, la app ofrece pedir ayuda.
+
+### Semáforo y peso
+
+El **semáforo determina la viabilidad**. El **peso compara la dificultad** entre rutas que tienen el mismo color. Se ordenan primero las verdes, después las amarillas y al final las rojas. Dentro de cada grupo se prioriza el menor peso y, en caso de empate, el menor tiempo estimado.
 
 | Factor | Efecto |
 | --- | --- |
-| Tiempo aproximado | Un punto por minuto estimado |
-| Escaleras | Un punto por cada bloque de hasta 16 escalones |
-| Precauciones por condiciones o necesidades del viaje | Dos puntos por cada advertencia que coincide con el recorrido |
-| Incidencia activa en la ruta | Tres puntos por aviso pertinente y su descripción en la tarjeta |
-| Paso incompatible o acceso indispensable bloqueado | Ruta roja, excluida de las recomendaciones |
+| Tiempo estimado | +1 punto por minuto |
+| Escaleras | +1 punto por cada bloque de hasta 16 escalones, redondeado hacia arriba |
+| Advertencia por clima o necesidades del viaje | +2 puntos por cada advertencia aplicable |
+| Reporte activo que afecta el recorrido | +3 puntos por reporte. Una ruta verde pasa a amarilla si el reporte añade una precaución |
+| Restricción incompatible o acceso indispensable bloqueado | Ruta roja, sin peso comparable y fuera de la recomendación |
 
-Primero se prefieren las rutas verdes, después las amarillas. Entre rutas del mismo estado se recomienda la de menor peso. Por ejemplo, un aviso de ascensor P fuera de servicio bloquea las variantes que lo necesitan para cambiar de piso. Un aviso personalizado sobre ruido en Entrada Placeres agrega una advertencia al corredor que pasa por ese lugar.
+El peso se expresa en **puntos de dificultad**. El tiempo estimado se muestra por separado. Los puntos de ruta tampoco intervienen en el ranking de ayudantes, que se actualiza con las calificaciones de las asistencias.
+
+**Ejemplo.** Del piso 4 del P al C, la variante por Entrada Placeres con ascensor estima **4 minutos y 4 puntos** en condiciones normales. Con lluvia suma **2 puntos** por exposición. Si además hay un reporte activo de piso resbaloso en Entrada Placeres, suma otros **3 puntos** y queda en **amarillo con 9 puntos**. Si el ascensor P está detenido, la variante queda **roja** porque depende de ese ascensor.
+
+### Cuándo afecta un reporte
+
+El motor compara el lugar del reporte con el origen, el destino y los puntos intermedios registrados para cada alternativa. Un reporte ajeno al recorrido no modifica su peso. El aviso de ascensor detenido afecta únicamente a las variantes que lo usan. El bloqueo de la rampa C afecta a las variantes que pasan por esa rampa y las vuelve rojas si se seleccionó **Sin escaleras** o **Movilidad reducida**.
+
+El selector **1 / 2 / 3 / 4 / Todas** controla las capas del mapa. Una ruta individual muestra únicamente sus marcadores pertinentes. **Todas** muestra la unión de los reportes que afectan a las rutas dibujadas. Las tarjetas de descripción siguen disponibles debajo y el selector no cambia el cálculo de la recomendación.
+
 
 ## Apoyos para el recorrido
 
@@ -49,7 +63,7 @@ Las pestañas comparten cambios mediante `BroadcastChannel` y `localStorage` en 
 
 ## Duración de los reportes
 
-La duración por categoría y el incremento para renovar se configuran en `src/data/report-ttl.json`. En **Reportar**, elige una categoría y conserva la duración inicial o escribe minutos. Los avisos públicos muestran lugar, tipo y tiempo restante. Los marcadores del mapa de resultados se filtran según las rutas visibles. Desde **Mis reportes** puedes usar **+15 min**, **Editar tiempo** o **Sacar reporte**. Al vencer, desaparecen el marcador y la alerta, y las rutas abiertas se recalculan automáticamente.
+La duración por categoría y el incremento para renovar se configuran en `src/data/report-ttl.json`. En **Reportar**, elige el lugar, el tipo y la duración. Los valores iniciales son 20 min para aglomeración, 90 min para piso resbaloso, 240 min para infraestructura general o construcción y 720 min para ascensor detenido. Los avisos públicos muestran lugar, tipo y tiempo restante. Los marcadores del mapa de resultados se filtran según las rutas visibles. Desde **Mis reportes** puedes usar **+15 min**, **Editar tiempo** o **Sacar reporte**. Al vencer, desaparecen el marcador y la alerta, y las rutas abiertas se recalculan automáticamente.
 
 ## Estructura
 
