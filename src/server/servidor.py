@@ -90,7 +90,7 @@ def sincronizar_expiracion_reportes(ahora):
     for ident, previa in list(INCIDENCIAS.items()):
         actual = normalizar_incidencia(previa, ahora)
         if actual["activa"] and ahora >= actual["expiraEn"]:
-            actual.update(activa=False, activo=False, revision=actual["revision"] + 1)
+            actual.update(activa=False, activo=False, estadoAviso="expirado", revision=actual["revision"] + 1)
         if actual != previa:
             guardar(ident, actual, incidencia=True)
 
@@ -107,11 +107,19 @@ def gestionar_incidencia(datos):
     rapida = RAPIDAS.get(ident)
     if rapida is None:
         validar_id(ident)
+    tipo_rapido = datos.get("tipo")
+    if not rapida and isinstance(tipo_rapido, str):
+        rapida = RAPIDAS.get(tipo_rapido)
     ahora = ahora_ms()
     sincronizar_expiracion_reportes(ahora)
     anterior = INCIDENCIAS.get(ident)
     revision = anterior["revision"] + 1 if anterior else 0
     accion = datos.get("accion")
+    if accion in ("editar", "extender", "retirar") and anterior:
+        rol = anterior.get("creadoPorRol")
+        es_propio = rol == actor["rolUsm"] if rol else anterior.get("creadoPorNombre") == actor["nombre"]
+        if not es_propio:
+            raise RuntimeError("Solo puedes gestionar tus propios reportes")
     if accion in ("editar", "extender"):
         if not anterior or not anterior["activa"]:
             raise RuntimeError("Este aviso ya no está activo")
@@ -135,7 +143,9 @@ def gestionar_incidencia(datos):
             lugar, descripcion = rapida or (texto(datos.get("lugar"), 40), texto(datos.get("descripcion"), 140))
             if lugar not in LUGARES or not descripcion:
                 raise ValueError("Selecciona un lugar e ingresa una descripción")
-            tipo = ident if rapida else "personalizada"
+            if rapida and datos.get("lugar") not in (None, lugar):
+                raise ValueError("El tipo no corresponde al lugar")
+            tipo = (ident if ident in RAPIDAS else tipo_rapido) if rapida else "personalizada"
             categoria = categoria_incidencia(tipo, datos.get("categoria"))
             duracion = validar_duracion(datos.get("duracionMinutos", REPORT_TTL_MINUTES[categoria]), ahora)
             actual = {"id": ident, "lugar": lugar, "descripcion": descripcion, "tipo": tipo, "categoria": categoria,
@@ -145,7 +155,7 @@ def gestionar_incidencia(datos):
                       "reportadaEn": datetime.now(timezone.utc).isoformat(), "creadoEn": ahora,
                       "duracionMinutos": duracion, "expiraEn": ahora + duracion * 60000}
         else:
-            actual = {**anterior, "activa": False, "activo": False, "revision": revision}
+            actual = {**anterior, "activa": False, "activo": False, "estadoAviso": "retirado", "revision": revision}
     guardar(ident, actual, incidencia=True)
     return actual
 

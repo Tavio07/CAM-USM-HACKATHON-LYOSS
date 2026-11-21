@@ -88,6 +88,7 @@ export function sincronizarExpiracionReportes() {
     for (const item of lista) {
       if (item.activa && ahora >= item.expiraEn) {
         item.activa = item.activo = false;
+        item.estadoAviso = 'expirado';
         item.revision += 1;
         expiradas.push(item);
       }
@@ -267,6 +268,10 @@ export function listarIncidencias() {
   return [...incidencias.values()].filter(item => item.activa && Date.now() < item.expiraEn).sort((a, b) => b.creadoEn - a.creadoEn);
 }
 
+export function listarHistorialIncidencias() {
+  return [...incidencias.values()].sort((a, b) => b.creadoEn - a.creadoEn);
+}
+
 export function suscribirIncidencias(oyente) {
   oyentesIncidencias.add(oyente);
 }
@@ -291,6 +296,10 @@ export async function cambiarIncidencia(datos) {
       const vigente = anterior?.activa && ahora < anterior.expiraEn;
       const revision = (anterior?.revision ?? -1) + 1;
       let actual;
+      if (['editar', 'extender', 'retirar'].includes(datos.accion) && anterior &&
+          (anterior.creadoPorRol ? anterior.creadoPorRol !== actor.rolUsm : anterior.creadoPorNombre !== actor.nombre)) {
+        throw new Error('Solo puedes gestionar tus propios reportes.');
+      }
       if (datos.accion === 'editar' || datos.accion === 'extender') {
         if (!vigente) throw new Error('Este aviso ya no está activo.');
         const duracionMinutos = datos.accion === 'extender'
@@ -300,12 +309,13 @@ export async function cambiarIncidencia(datos) {
           ? anterior.expiraEn + REPORT_TTL_MINUTES.extensionMinutos * 60000 : ahora + duracionMinutos * 60000 };
       } else if (!datos.activa) {
         if (!anterior || !anterior.activa) return anterior;
-        actual = { ...anterior, activa: false, activo: false, revision };
+        actual = { ...anterior, activa: false, activo: false, estadoAviso: 'retirado', revision };
       } else {
         if (vigente) return anterior;
-        const rapida = INCIDENCIAS_RAPIDAS.find(item => item.id === id);
+        const rapida = INCIDENCIAS_RAPIDAS.find(item => item.id === id || item.id === datos.tipo);
         const lugar = rapida?.lugar ?? datos.lugar;
         const descripcion = (rapida?.descripcion ?? datos.descripcion ?? '').trim();
+        if (rapida && datos.lugar && datos.lugar !== rapida.lugar) throw new Error('El tipo no corresponde al lugar.');
         const tipo = rapida?.id ?? 'personalizada';
         const categoria = categoriaIncidencia(tipo, datos.categoria);
         const duracionMinutos = datos.duracionMinutos ?? REPORT_TTL_MINUTES[categoria];

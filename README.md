@@ -41,15 +41,15 @@ El usuario elige lo que le sirve ese día. La aplicación guarda esas seleccione
 ## Reportes y asistencia en vivo
 
 1. En la primera pestaña, entra a **Necesito ayuda**. Selecciona **Sin escaleras**, calcula del piso 4 del Edificio P al Edificio C y deja el resultado abierto.
-2. En la otra, entra a **Quiero ayudar** y pulsa **Reportar**, junto a **Ranking**. Activa **Ascensor Edificio P fuera de servicio**. En ambas secciones también puedes publicar avisos sobre ruido, iluminación, obstáculos u otras condiciones con un lugar y una descripción.
-3. En la primera pestaña verás la alerta y la ruta de ascensor en rojo. Desde **Reportar → Mostrar solo mis avisos → Retirar mi aviso**, el autor puede retirar su reporte y la ruta se recalcula.
+2. En la otra, entra a **Quiero ayudar** y pulsa **Reportar**, junto a **Ranking**. Elige **Edificio P** y **Infraestructura · Ascensor detenido**, ajusta el tiempo y publica. Tanto estudiantes como ayudantes pueden crear avisos seleccionando lugar, tipo y duración.
+3. En la primera pestaña verás la alerta y la ruta de ascensor en rojo. Desde **Bandeja de cuenta → Mis reportes → Sacar reporte**, el autor puede retirar su reporte y la ruta se recalcula.
 4. Para probar el acompañamiento, solicita ayuda en la primera pestaña. En la segunda, acepta y finaliza. El estudiante confirma la llegada y califica con estrellas. Los puntos, el historial y el ranking se actualizan con esa asistencia.
 
 Las pestañas comparten cambios mediante `BroadcastChannel` y `localStorage` en modo local. Con el servidor también se consulta la API REST cada 1,5 segundos mientras la vista está visible. El servidor guarda los datos en `asistencia-datos.json`, configurable con `--datos`.
 
 ## Duración de los reportes
 
-La duración por categoría y el incremento para renovar se configuran en `src/data/report-ttl.json`. En **Reportar**, elige una categoría y conserva la duración inicial o escribe minutos. Los avisos vigentes muestran un marcador, el autor y el tiempo restante. Puedes usar **+15 min**, **Editar tiempo** o retirar el aviso. Al vencer, desaparecen el marcador y la alerta, y las rutas abiertas se recalculan automáticamente.
+La duración por categoría y el incremento para renovar se configuran en `src/data/report-ttl.json`. En **Reportar**, elige una categoría y conserva la duración inicial o escribe minutos. Los avisos públicos muestran lugar, tipo y tiempo restante. Los marcadores del mapa de resultados se filtran según las rutas visibles. Desde **Mis reportes** puedes usar **+15 min**, **Editar tiempo** o **Sacar reporte**. Al vencer, desaparecen el marcador y la alerta, y las rutas abiertas se recalculan automáticamente.
 
 ## Estructura
 

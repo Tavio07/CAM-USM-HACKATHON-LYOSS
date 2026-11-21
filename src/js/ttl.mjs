@@ -5,7 +5,8 @@ export const CATEGORIAS = {
   default: 'Otro aviso',
   aglomeracion: 'Aglomeración',
   superficie: 'Piso o superficie',
-  obstaculo: 'Obstáculo',
+  obstaculo: 'Infraestructura',
+  construccion: 'Construcción',
   ascensor: 'Ascensor',
 };
 
@@ -30,4 +31,22 @@ export function normalizarIncidencia(aviso, ahora = Date.now()) {
 
 export function minutosValidos(minutos) {
   return Number.isSafeInteger(minutos) && minutos >= 1 && Date.now() + minutos * 60000 <= 8.64e15;
+}
+
+const ESTILOS_REPORTE = {
+  superficie: { id: 'superficie', etiqueta: 'Piso resbaloso', simbolo: '!', color: '#D97706' },
+  infraestructura: { id: 'infraestructura', etiqueta: 'Infraestructura', simbolo: '✚', color: '#C2410C' },
+  construccion: { id: 'construccion', etiqueta: 'Construcción', simbolo: '▲', color: '#C92A2A' },
+  aglomeracion: { id: 'aglomeracion', etiqueta: 'Aglomeración', simbolo: '●', color: '#2563EB' },
+};
+
+export function estiloReporte(aviso) {
+  const categoria = categoriaIncidencia(aviso.tipo, aviso.categoria);
+  return ESTILOS_REPORTE[categoria] ?? ESTILOS_REPORTE.infraestructura;
+}
+
+export function tituloReporte(aviso) {
+  if (aviso.tipo === 'ascensor-p') return 'Infraestructura · Ascensor detenido';
+  if (aviso.tipo === 'rampa-c') return 'Infraestructura · Rampa bloqueada';
+  return estiloReporte(aviso).etiqueta;
 }

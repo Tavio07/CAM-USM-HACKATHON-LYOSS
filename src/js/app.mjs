@@ -26,7 +26,8 @@ const capasMapa = prepararCapasRutas({
     return mapaRutas;
   },
   color: estado => estados[estado].color,
-  alSeleccionar(id) {
+  alSeleccionar(id, opciones) {
+    reportes.filtrarRutas(opciones, id);
     for (const tarjeta of el('alternativas').children) tarjeta.classList.toggle('ruta-en-mapa', tarjeta.dataset.ruta === id);
   },
 });
@@ -174,6 +175,7 @@ function invalidarResultados() {
   borrador = undefined;
   el('resultados').hidden = true;
   capasMapa.limpiar();
+  reportes.filtrarRutas([]);
 }
 
 function leerPunto(tipo) {

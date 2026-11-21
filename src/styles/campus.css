@@ -289,3 +289,24 @@ src/server/servidor.py:75:                  "reportadaEn": datetime.now(timezone
 .selector-mapa-rutas button[aria-pressed="true"] { border-color: #004b85; background: #004b85; color: #fff; }
 .selector-mapa-rutas button:focus-visible { outline-offset: -3px; }
 .alternativa.ruta-en-mapa { background: #f0f6fc; outline: 1px solid #004b85; outline-offset: -1px; }
+.tarjeta-reporte, #categoria-incidencia { --reporte-color: #c2410c; --reporte-fondo: #fff7ed; --reporte-texto: #7c2d12; }
+[data-tipo-reporte="superficie"], .marca-reporte-superficie { --reporte-color: #d97706; --reporte-fondo: #fffbeb; --reporte-texto: #78350f; }
+[data-tipo-reporte="infraestructura"], .marca-reporte-infraestructura { --reporte-color: #c2410c; --reporte-fondo: #fff7ed; --reporte-texto: #7c2d12; }
+[data-tipo-reporte="construccion"], .marca-reporte-construccion { --reporte-color: #c92a2a; --reporte-fondo: #fef2f2; --reporte-texto: #7f1d1d; }
+[data-tipo-reporte="aglomeracion"], .marca-reporte-aglomeracion { --reporte-color: #2563eb; --reporte-fondo: #eff6ff; --reporte-texto: #1e3a8a; }
+#categoria-incidencia[data-tipo-reporte="superficie"] { --reporte-color: #d97706; }
+#categoria-incidencia[data-tipo-reporte="construccion"] { --reporte-color: #c92a2a; }
+#categoria-incidencia[data-tipo-reporte="aglomeracion"] { --reporte-color: #2563eb; }
+#categoria-incidencia { border-left: 4px solid var(--reporte-color); }
+.avisos-campus ul { display: grid; gap: 5px; list-style: none; margin: 6px 0 0; padding: 0; }
+.tarjeta-reporte, .lista-incidencias .tarjeta-reporte { border: 1px solid #dee2e6; border-left: 4px solid var(--reporte-color); border-radius: 8px; background: var(--reporte-fondo); color: #002847; padding: 7px 9px; overflow-wrap: anywhere; }
+.tarjeta-reporte .lugar-reporte { display: block; margin-bottom: 3px; }
+.tipo-reporte { display: inline-block; border: 1px solid var(--reporte-color); border-radius: 8px; padding: 2px 5px; color: var(--reporte-texto); font-size: .75rem; font-weight: 700; }
+.tarjeta-reporte .reloj-incidencia { margin-top: 4px; color: #46576b; }
+.marca-incidencia { background: var(--reporte-color, #d97706); color: #fff; }
+.marca-reporte-superficie { color: #201500; }
+.lista-incidencias .sacar-reporte { background: #fff; color: #a12424; border-color: #c92a2a; }
+#panel-historial-reportes, #panel-incidencias { max-height: min(85dvh, 640px); overscroll-behavior: contain; }
+.confirmacion-reporte { position: fixed; z-index: 1250; bottom: max(12px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: min(390px, calc(100% - 24px)); text-align: center; padding: 10px; border-radius: 9px; color: #fff; background: #167247; box-shadow: 0 4px 12px #00284738; }
+.confirmacion-reporte:empty { display: none; }
+#abrir-historial-reportes { grid-column: 1 / -1; }

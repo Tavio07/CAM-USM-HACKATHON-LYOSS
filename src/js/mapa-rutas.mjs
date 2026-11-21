@@ -49,7 +49,7 @@ export function prepararCapasRutas({ leaflet, contenedor, obtenerMapa, color, al
   function seleccionar(id, animar = false) {
     seleccion = id;
     enfocar(animar);
-    alSeleccionar(id);
+    alSeleccionar(id, opciones);
   }
 
   function boton(id, texto, etiqueta) {
@@ -105,7 +105,7 @@ export function prepararCapasRutas({ leaflet, contenedor, obtenerMapa, color, al
       }
     }
     enfocar();
-    alSeleccionar(seleccion);
+    alSeleccionar(seleccion, opciones);
     if (foco) [...contenedor.children].find(control => control.dataset.ruta === foco)?.focus({ preventScroll: true });
   }
 

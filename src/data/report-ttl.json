@@ -2,6 +2,7 @@
   "aglomeracion": 20,
   "superficie": 90,
   "obstaculo": 240,
+  "construccion": 240,
   "ascensor": 720,
   "default": 30,
   "extensionMinutos": 15

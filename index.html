@@ -30,6 +30,7 @@
       <nav id="bandeja-cuenta" class="bandeja-cuenta" aria-label="Información de cuenta" hidden>
         <button id="abrir-perfil" type="button" aria-haspopup="dialog">Ver mi perfil</button>
         <button id="abrir-historial" type="button" aria-haspopup="dialog">Historial de ayudas</button>
+        <button id="abrir-historial-reportes" type="button" aria-haspopup="dialog">Mis reportes</button>
         <button id="cambiar-seccion" type="button">Cambiar sección</button>
         <button id="cerrar-sesion" type="button">Cerrar sesión</button>
       </nav>
@@ -169,32 +170,33 @@
         </div>
       </dialog>
     </section>
+    <p id="confirmacion-reporte" class="confirmacion-reporte" role="status"></p>
     <dialog id="panel-incidencias" class="reporte-campus" aria-labelledby="titulo-incidencias">
       <div class="encabezado-panel-cuenta">
         <h2 id="titulo-incidencias" tabindex="-1">Reportar estado del campus</h2>
         <button id="cerrar-incidencias" aria-label="Cerrar reportes" type="button">×</button>
       </div>
-      <p class="nota">Avisa sobre obstáculos, iluminación, ruido u otras condiciones del lugar.</p>
-        <div class="opciones" id="incidencias-rapidas"></div>
-        <form id="publicar-incidencia">
-          <label for="lugar-incidencia">Lugar o edificio</label>
-          <select id="lugar-incidencia" required><option value="">Selecciona un lugar</option></select>
-          <label for="categoria-incidencia">Categoría</label>
-          <select id="categoria-incidencia"></select>
-          <label for="descripcion-incidencia">Descripción breve</label>
-          <input id="descripcion-incidencia" maxlength="140" placeholder="Ej. Ascensor detenido en piso 2" required>
-          <label for="duracion-incidencia">Duración del reporte (minutos)</label>
-          <input id="duracion-incidencia" type="number" min="1" step="1" required>
-          <div id="duraciones-rapidas" class="duraciones-rapidas"></div>
-          <button id="publicar-aviso" class="principal" type="submit">Publicar aviso</button>
-        </form>
-        <p id="estado-incidencias" role="status"></p>
+      <form id="publicar-incidencia">
+        <label for="lugar-incidencia">Edificio o lugar</label>
+        <select id="lugar-incidencia" required><option value="">Selecciona un lugar</option></select>
+        <label for="categoria-incidencia">Tipo de reporte</label>
+        <select id="categoria-incidencia" required></select>
+        <label for="duracion-incidencia">Tiempo aproximado del reporte (minutos)</label>
+        <input id="duracion-incidencia" type="number" min="1" step="1" required>
+        <div id="duraciones-rapidas" class="duraciones-rapidas"></div>
+        <button id="publicar-aviso" class="principal" type="submit">Publicar reporte</button>
         <p id="error-incidencias" role="alert"></p>
-        <h3>Incidencias activas</h3>
-        <div class="opciones"><label><input id="solo-mis-incidencias" type="checkbox"> Mostrar solo mis avisos</label></div>
-        <p id="sin-incidencias" class="nota">No hay incidencias activas.</p>
-        <ul id="lista-incidencias" class="lista-incidencias"></ul>
-      </dialog>
+      </form>
+    </dialog>
+    <dialog id="panel-historial-reportes" aria-labelledby="titulo-historial-reportes">
+      <div class="encabezado-panel-cuenta">
+        <h2 id="titulo-historial-reportes" tabindex="-1">Mis reportes</h2>
+        <button id="cerrar-historial-reportes" aria-label="Cerrar historial de reportes" type="button">×</button>
+      </div>
+      <p id="error-historial-reportes" role="alert"></p>
+      <p id="sin-incidencias" class="nota">Todavía no has generado reportes.</p>
+      <ul id="lista-incidencias" class="lista-incidencias"></ul>
+    </dialog>
     <dialog id="panel-cuenta" aria-label="Cuenta CAM USM">
       <div class="encabezado-panel-cuenta">
         <h2 id="titulo-cuenta" tabindex="-1"></h2>

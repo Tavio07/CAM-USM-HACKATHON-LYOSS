@@ -1,3 +1,5 @@
+import { tituloReporte } from './ttl.mjs';
+
 export const CENTRO_CAMPUS = [-33.0345, -71.5950];
 
 export const LUGARES = [
@@ -171,23 +173,27 @@ function evaluar(ruta, escaleras, minutos, restricciones) {
   return { estado: avisos.length ? 'AMARILLO' : 'VERDE', motivo: avisos.join(' · '), penalizacion: 2 * avisos.length };
 }
 
-function conIncidencias(ruta, usaAscensor, restricciones, base, incidencias) {
+export function incidenciaAfectaRuta(aviso, ruta) {
+  return ruta.lugaresIncidencia.includes(aviso.lugar) &&
+    (aviso.tipo !== 'ascensor-p' || ruta.usaAscensor) &&
+    (aviso.tipo !== 'rampa-c' || ruta.rampaC);
+}
+
+function conIncidencias(ruta, restricciones, base, incidencias) {
   let estado = base.estado;
   let penalizacion = base.penalizacion ?? 0;
   const motivos = base.motivo ? [base.motivo] : [];
   for (const aviso of incidencias) {
     if (!aviso.activa) continue;
-    const coincide = aviso.lugar === ruta.desde || aviso.lugar === ruta.hasta ||
-      (ruta.viaPlaceres && aviso.lugar === 'entrada-placeres') || ruta.lugaresIntermedios?.includes(aviso.lugar);
-    if (!coincide || (aviso.tipo === 'ascensor-p' && !usaAscensor) ||
-        (aviso.tipo === 'rampa-c' && !ruta.rampaC)) continue;
+    if (!incidenciaAfectaRuta(aviso, ruta)) continue;
     if (aviso.tipo === 'ascensor-p' || (aviso.tipo === 'rampa-c' &&
         (restricciones.has('sin-escaleras') || restricciones.has('movilidad')))) {
       estado = 'ROJO';
     } else if (estado === 'VERDE') {
       estado = 'AMARILLO';
     }
-    motivos.push(aviso.descripcion);
+    const lugar = LUGARES.find(punto => punto.id === aviso.lugar)?.nombre ?? aviso.lugar;
+    motivos.push(lugar + ' — ' + tituloReporte(aviso));
     penalizacion += 3;
   }
   return { estado, motivo: [...new Set(motivos)].join(' · '), penalizacion };
@@ -212,10 +218,13 @@ export function buscarRutas(origen, destino, limitaciones, incidencias = []) {
       ' del Edificio P hasta el piso ' + (ida ? ruta.pisoP : salida.piso) + '.' : '';
     const minutos = Math.max(1, ruta.minutos - (!diferencia && ruta.pisoP !== undefined ? 1 : 0));
     const trazado = [puntos[ruta.desde], ...ruta.forma, puntos[ruta.hasta]];
-    const estado = conIncidencias(ruta, usaAscensor, restricciones,
+    const contexto = { usaAscensor, rampaC: Boolean(ruta.rampaC), lugaresIncidencia: [ruta.desde, ruta.hasta,
+      ...(ruta.viaPlaceres ? ['entrada-placeres'] : []), ...(ruta.lugaresIntermedios ?? [])] };
+    const estado = conIncidencias(contexto, restricciones,
       evaluar(ruta, escaleras, minutos, restricciones), incidencias);
     const peso = estado.estado === 'ROJO' ? null : minutos + Math.ceil(escaleras / 16) + estado.penalizacion;
     opciones.push({
+      ...contexto,
       id: ruta.id,
       numero: ruta.numero,
       hitos: ruta.hitos ?? [],
