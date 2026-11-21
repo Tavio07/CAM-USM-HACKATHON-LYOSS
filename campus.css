@@ -47,3 +47,56 @@ ol li + li { margin-top: 7px; }
 dt { font-weight: 700; }
 dd { margin: 2px 0 12px; overflow-wrap: anywhere; }
 [hidden] { display: none !important; }
+.barra { flex-wrap: wrap; }
+.filtros details + details { margin-top: 8px; }
+.filtros details { border: 1px solid #a8b7c6; border-radius: 8px; }
+.filtros summary { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 8px 12px; font-weight: 700; cursor: pointer; list-style: none; }
+.filtros summary::-webkit-details-marker { display: none; }
+.filtros summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid; border-bottom: 2px solid; transform: rotate(45deg); margin-right: 4px; }
+.filtros details[open] summary::after { transform: rotate(225deg); }
+.filtros .opciones { border-top: 1px solid #dee2e6; padding: 4px; }
+.estado-solicitud { position: fixed; z-index: 1000; bottom: max(8px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); margin: 0; width: min(406px, calc(100% - 20px)); max-height: 58dvh; overflow: auto; border-top: 4px solid #004b85; box-shadow: 0 4px 20px #00284730; }
+.estado-solicitud[data-estado="pendiente"] h2::before { content: ""; display: inline-block; width: 12px; height: 12px; border: 2px solid #a8b7c6; border-top-color: #004b85; border-radius: 50%; margin-right: 9px; animation: espera 900ms linear infinite; }
+@keyframes espera { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .estado-solicitud h2::before { animation: none !important; } }
+.estado-solicitud button { background: #fff; color: #004b85; }
+body:has(#vista-estudiante:not([hidden]) .estado-solicitud:not([hidden])) main { padding-bottom: 62dvh; }
+dialog { width: min(406px, calc(100% - 22px)); max-height: 85dvh; overflow: auto; padding: 16px; color: #002847; background: #fff; border: 1px solid #a8b7c6; border-radius: 10px; }
+dialog::backdrop { background: #00284788; }
+.acciones-ayudante { display: flex; gap: 8px; }
+.aceptar { background: #147447; color: #fff; border-color: #147447; }
+.rechazar { background: #ad2020; color: #fff; border-color: #ad2020; }
+#finalizar { margin-top: 10px; }
+button:disabled { opacity: .6; cursor: default; }
+[role="alert"] { color: #ad2020; }
+.estado-solicitud .cierre { background: #004b85; color: #fff; }
+#calificacion fieldset { margin-bottom: 10px; }
+#calificacion button { margin-top: 8px; }
+.estrellas { display: flex; gap: 4px; }
+.estrellas label { position: relative; flex: 1; max-width: 54px; margin: 0; }
+.estrellas input { position: absolute; opacity: 0; inset: 0; margin: 0; width: 100%; cursor: pointer; }
+.estrellas span { display: grid; place-items: center; min-height: 48px; font-size: 1.65rem; border: 1px solid #a8b7c6; border-radius: 8px; color: #46576b; }
+.estrellas input:focus-visible + span { outline: 3px solid #004b85; outline-offset: 2px; }
+.estrellas[data-valor="1"] label:nth-child(-n+1) span,
+.estrellas[data-valor="2"] label:nth-child(-n+2) span,
+.estrellas[data-valor="3"] label:nth-child(-n+3) span,
+.estrellas[data-valor="4"] label:nth-child(-n+4) span,
+.estrellas[data-valor="5"] label:nth-child(-n+5) span { background: #fff0cc; color: #805000; border-color: #805000; }
+.etiquetas-calificacion { display: flex; flex-wrap: wrap; gap: 4px; }
+.etiquetas-calificacion label { display: flex; align-items: center; gap: 5px; padding: 4px 7px; min-height: 48px; margin: 0; }
+.etiquetas-calificacion input { accent-color: #004b85; }
+.etiquetas-calificacion label:has(:checked) { background: #ebf3fa; border-radius: 6px; }
+.aviso-puntos { border-left: 4px solid #198754; padding: 8px; color: #12573a; background: #e7f5ec; }
+.ranking { list-style: none; padding: 0; margin-bottom: 0; }
+.fila-ranking { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; border: 1px solid #dee2e6; border-radius: 8px; padding: 10px; }
+.fila-ranking small { display: block; color: #46576b; }
+.fila-ranking strong { overflow-wrap: anywhere; }
+.posicion, .puntaje { white-space: nowrap; }
+.ranking-activo { border-color: #805000; background: #fff0cc; }
+.sesion-activa { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sesion-activa p { flex: 1 0 100%; margin: 0; overflow-wrap: anywhere; }
+.sesion-activa p span { display: block; font-size: .875rem; }
+.sesion-activa button { flex: 1; width: auto; min-width: 132px; background: #fff; color: #004b85; }
+.acceso button { margin-top: 12px; }
+.opcion-seccion { background: #fff; color: #004b85; }
+#abrir-ranking, #volver-ayudante { width: auto; margin-bottom: 10px; }

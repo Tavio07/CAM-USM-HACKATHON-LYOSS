@@ -1,14 +1,14 @@
 export const CENTRO_CAMPUS = [-33.0345, -71.5950];
 
 export const LUGARES = [
-  { id: 'entrada', nombre: 'Entrada Principal', lat: -33.03424, lng: -71.59704 },
-  { id: 'edificio-a', nombre: 'Edificio A', lat: -33.03471, lng: -71.59671, pisos: [1, 2, 3] },
-  { id: 'edificio-b', nombre: 'Edificio B', lat: -33.03488, lng: -71.59629, pisos: [1, 2] },
-  { id: 'edificio-c', nombre: 'Edificio C', lat: -33.03527, lng: -71.59433, pisos: [1, 2, 3] },
-  { id: 'edificio-p', nombre: 'Edificio P', lat: -33.03551, lng: -71.59418, pisos: [-1, 1, 2, 3, 4] },
-  { id: 'entrada-placeres', nombre: 'Entrada Placeres', lat: -33.03544, lng: -71.59452 },
-  { id: 'casino', nombre: 'Casino', lat: -33.03511, lng: -71.59564 },
-  { id: 'biblioteca', nombre: 'Biblioteca · Edificio U', lat: -33.03492, lng: -71.59495, pisos: [1, 2, 3] },
+  { id: 'entrada', nombre: 'Entrada Principal', lat: -33.034237, lng: -71.595714 },
+  { id: 'edificio-a', nombre: 'Edificio A', lat: -33.034815, lng: -71.595569, pisos: [1, 2, 3] },
+  { id: 'edificio-b', nombre: 'Edificio B · Sector piscina', lat: -33.03556, lng: -71.59532, pisos: [1, 2] },
+  { id: 'edificio-c', nombre: 'Edificio C', lat: -33.036256, lng: -71.594543, pisos: [1, 2, 3] },
+  { id: 'edificio-p', nombre: 'Edificio P', lat: -33.036857, lng: -71.594280, pisos: [-1, 1, 2, 3, 4] },
+  { id: 'entrada-placeres', nombre: 'Entrada Placeres', lat: -33.036601, lng: -71.595232 },
+  { id: 'casino', nombre: 'Casino', lat: -33.035475, lng: -71.596091 },
+  { id: 'biblioteca', nombre: 'Biblioteca · Edificio U', lat: -33.034954, lng: -71.595094, pisos: [1, 2, 3] },
 ];
 
 export const LIMITACIONES = {
@@ -37,7 +37,7 @@ export const ORIGENES_QR = {
 
 const puntos = Object.fromEntries(LUGARES.map(lugar => [lugar.id, [lugar.lat, lugar.lng]]));
 const tunel = {
-  forma: [[-33.03543, -71.59426], [-33.03536, -71.59431]],
+  forma: [[-33.036644, -71.594450], [-33.036438, -71.594484]],
   etiquetas: ['Techada', 'Escaleras al final'],
   escaleras: 4,
   resbaladiza: true,
@@ -46,7 +46,7 @@ const tunel = {
   vuelta: ['Baja la escalera corta frente al Edificio C.', 'Sigue el túnel hasta el piso −1 del Edificio P.'],
 };
 const placeres = {
-  forma: [[-33.03556, -71.59435], puntos['entrada-placeres'], [-33.03536, -71.59448]],
+  forma: [[-33.036710, -71.594790], [-33.036584, -71.594844], puntos['entrada-placeres'], [-33.036485, -71.595174], [-33.036309, -71.594515]],
   etiquetas: ['Al aire libre', 'Cruce de calle'],
   escaleras: 0,
   exterior: true,
@@ -60,10 +60,10 @@ export const RUTAS_PREHECHAS = [
   { ...tunel, id: 'tunel-ascensor', titulo: 'Ascensor y túnel', desde: 'edificio-p', hasta: 'edificio-c', pisoP: -1, acceso: 'ascensor', minutos: 3 },
   { ...placeres, id: 'placeres-escalera', titulo: 'Escalera y Entrada Placeres', desde: 'edificio-p', hasta: 'edificio-c', pisoP: 1, acceso: 'escalera', minutos: 3 },
   { ...placeres, id: 'placeres-ascensor', titulo: 'Ascensor y Entrada Placeres', desde: 'edificio-p', hasta: 'edificio-c', pisoP: 1, acceso: 'ascensor', minutos: 4 },
-  { id: 'entrada-a', titulo: 'Escalinata principal', desde: 'entrada', hasta: 'edificio-a', forma: [[-33.03447, -71.59690]], escaleras: 34, exterior: true, pendiente: true, minutos: 3, etiquetas: ['Escaleras', 'Pendiente'], ida: ['Desde la entrada, sube la escalinata hacia el Edificio A.'], vuelta: ['Desde el Edificio A, baja por la escalinata hacia Entrada Principal.'] },
-  { id: 'a-b', titulo: 'Paso entre los edificios A y B', desde: 'edificio-a', hasta: 'edificio-b', forma: [[-33.03479, -71.59647]], escaleras: 0, pendiente: true, exterior: true, minutos: 3, etiquetas: ['Pendiente', 'Al aire libre'], ida: ['Desde el acceso del Edificio A, sigue el paso exterior hacia el Edificio B.'], vuelta: ['Desde el acceso del Edificio B, vuelve por el paso exterior hacia el Edificio A.'] },
-  { id: 'casino-biblioteca', titulo: 'Paso exterior a la Biblioteca', desde: 'casino', hasta: 'biblioteca', forma: [[-33.03504, -71.59536]], escaleras: 0, pendiente: true, exterior: true, minutos: 4, etiquetas: ['Pendiente', 'Al aire libre'], ida: ['Desde el Casino, toma el paso exterior hasta el acceso de la Biblioteca.'], vuelta: ['Desde la Biblioteca, sigue el paso exterior hacia el Casino.'] },
-  { id: 'placeres-c', titulo: 'Portería Placeres y Edificio C', desde: 'entrada-placeres', hasta: 'edificio-c', forma: [placeres.forma[2]], escaleras: 0, exterior: true, minutos: 2, etiquetas: ['Al aire libre'], ida: [placeres.ida[2]], vuelta: ['Sigue el paso exterior hasta la portería de Entrada Placeres.'] },
+  { id: 'entrada-a', titulo: 'Escalinata principal', desde: 'entrada', hasta: 'edificio-a', forma: [[-33.034446, -71.595724], [-33.034681, -71.595626]], escaleras: 34, exterior: true, pendiente: true, minutos: 3, etiquetas: ['Escaleras', 'Pendiente'], ida: ['Desde la entrada, sube la escalinata hacia el Edificio A.'], vuelta: ['Desde el Edificio A, baja por la escalinata hacia Entrada Principal.'] },
+  { id: 'a-b', titulo: 'Paso entre los edificios A y B', desde: 'edificio-a', hasta: 'edificio-b', forma: [[-33.035156, -71.595598], [-33.035364, -71.595446]], escaleras: 0, pendiente: true, exterior: true, minutos: 3, etiquetas: ['Pendiente', 'Al aire libre'], ida: ['Desde el acceso del Edificio A, sigue el paso exterior hacia el Edificio B.'], vuelta: ['Desde el acceso del Edificio B, vuelve por el paso exterior hacia el Edificio A.'] },
+  { id: 'casino-biblioteca', titulo: 'Paso exterior a la Biblioteca', desde: 'casino', hasta: 'biblioteca', forma: [[-33.035387, -71.595834], [-33.035142, -71.595535]], escaleras: 0, pendiente: true, exterior: true, minutos: 4, etiquetas: ['Pendiente', 'Al aire libre'], ida: ['Desde el Casino, toma el paso exterior hasta el acceso de la Biblioteca.'], vuelta: ['Desde la Biblioteca, sigue el paso exterior hacia el Casino.'] },
+  { id: 'placeres-c', titulo: 'Portería Placeres y Edificio C', desde: 'entrada-placeres', hasta: 'edificio-c', forma: placeres.forma.slice(3), escaleras: 0, exterior: true, minutos: 2, etiquetas: ['Al aire libre'], ida: [placeres.ida[2]], vuelta: ['Sigue el paso exterior hasta la portería de Entrada Placeres.'] },
 ];
 
 function evaluar(ruta, escaleras, minutos, restricciones) {

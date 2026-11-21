@@ -14,13 +14,37 @@
   <header class="barra">
     <h1>CAE <span>USM</span></h1>
     <span class="logo"><img src="./logo-usm.png" alt="Universidad Técnica Federico Santa María"></span>
+    <div id="sesion-activa" class="sesion-activa" hidden>
+      <p><strong id="sesion-nombre"></strong><span id="sesion-rol"></span></p>
+      <button id="cambiar-seccion" type="button" hidden>Cambiar sección</button>
+      <button id="cerrar-sesion" type="button">Cerrar sesión</button>
+    </div>
   </header>
   <main>
+    <section id="inicio-sesion" class="panel acceso" aria-labelledby="titulo-login">
+      <h2 id="titulo-login" tabindex="-1">Inicia sesión USM</h2>
+      <p class="nota">Acceso institucional simulado para la demo.</p>
+      <form id="login">
+        <label for="login-nombre">Nombre completo</label>
+        <input id="login-nombre" autocomplete="name" required maxlength="80" placeholder="Octavio Pereira">
+        <label for="login-rol">ROL USM</label>
+        <input id="login-rol" required maxlength="24" autocapitalize="characters" spellcheck="false" placeholder="202373501-2">
+        <button class="principal" type="submit">Ingresar</button>
+      </form>
+    </section>
+    <section id="elegir-seccion" class="panel acceso" hidden aria-labelledby="saludo">
+      <h2 id="saludo" tabindex="-1"></h2>
+      <p>¿Qué necesitas hoy?</p>
+      <button id="necesito-ayuda" class="principal" type="button">Necesito ayuda</button>
+      <button id="quiero-ayudar" class="opcion-seccion" type="button">Quiero ayudar</button>
+    </section>
+    <p id="conexion" class="nota" role="status"></p>
+    <p id="error-asistencia" role="alert"></p>
+    <div id="vista-estudiante" hidden>
     <form id="viaje">
-      <section class="panel" aria-labelledby="titulo-limitaciones">
-        <h2 id="titulo-limitaciones">Limitaciones y condiciones</h2>
-        <fieldset><legend>Físicas</legend><div id="fisicas" class="opciones"></div></fieldset>
-        <fieldset><legend>Entorno y clima</legend><div id="entorno" class="opciones"></div></fieldset>
+      <section id="titulo-filtros" tabindex="-1" class="panel filtros" aria-label="Filtros del recorrido">
+        <details><summary id="contador-fisicas">Limitaciones y condiciones (0)</summary><div id="fisicas" class="opciones"></div></details>
+        <details><summary id="contador-entorno">Entorno y clima (0)</summary><div id="entorno" class="opciones"></div></details>
       </section>
       <section class="panel" aria-labelledby="titulo-origen">
         <h2 id="titulo-origen">¿Dónde estás?</h2>
@@ -64,13 +88,62 @@
       <section class="panel" aria-labelledby="titulo-ayuda">
         <h2 id="titulo-ayuda">¿Prefieres pedir ayuda?</h2>
         <p>Si ninguna opción te da seguridad, puedes solicitar acompañamiento.</p>
-        <button id="solicitar" class="principal ayuda" type="button">Generar Solicitud de Ayuda</button>
+        <button id="solicitar" class="principal ayuda" type="button" disabled>Solicitar Ayudante de Turno</button>
       </section>
-      <section id="confirmacion" class="panel" hidden aria-labelledby="titulo-confirmacion">
-        <h2 id="titulo-confirmacion" tabindex="-1">Solicitud enviada - Buscando ayudante disponible</h2>
-        <p class="nota">Confirmación simulada para la demo.</p>
-        <dl id="resumen"></dl>
-      </section>
+    </section>
+    <aside id="estado-solicitud" class="panel estado-solicitud" hidden aria-labelledby="titulo-solicitud">
+      <h2 id="titulo-solicitud" tabindex="-1" role="status"></h2>
+      <dl id="resumen"></dl>
+      <p id="error-cierre" role="alert"></p>
+      <button id="confirmar-llegada" class="principal cierre" type="button" hidden>Confirmar llegada</button>
+      <form id="calificacion" hidden>
+        <fieldset>
+          <legend>Califica la calidad de la ayuda</legend>
+          <p id="puntos-estrellas">Cada estrella equivale a un punto para el ayudante.</p>
+          <div id="estrellas" class="estrellas" aria-describedby="puntos-estrellas"></div>
+        </fieldset>
+        <fieldset>
+          <legend>¿Qué destacarías? <span class="nota">Opcional</span></legend>
+          <div id="etiquetas-calificacion" class="etiquetas-calificacion"></div>
+        </fieldset>
+        <label for="comentario-calificacion">Comentario <span>Opcional</span></label>
+        <textarea id="comentario-calificacion" name="comentario" rows="2" maxlength="200"></textarea>
+        <button id="enviar-calificacion" class="principal cierre" type="submit">Enviar calificación</button>
+      </form>
+      <button id="cancelar" type="button" hidden>Cancelar solicitud</button>
+      <button id="cerrar-estado" type="button" hidden>Volver a las rutas</button>
+    </aside>
+    </div>
+    <section id="vista-ayudante" class="panel" hidden aria-labelledby="titulo-ayudante">
+      <h2 id="titulo-ayudante" tabindex="-1">Ayudante de turno</h2>
+      <button id="abrir-ranking" class="opcion-seccion" type="button">Ranking</button>
+      <p id="estado-ayudante" role="status">Esperando solicitudes de acompañamiento.</p>
+      <p id="aviso-puntos" class="aviso-puntos" role="status" hidden></p>
+      <button id="ver-pendientes" class="principal" type="button" hidden>Ver solicitudes pendientes</button>
+      <div id="asistencia-activa" hidden>
+        <div id="selector-asistencia" hidden>
+          <label for="asistencia-en-vista">Asistencia abierta</label>
+          <select id="asistencia-en-vista"></select>
+        </div>
+        <dl id="resumen-activo"></dl>
+        <div id="mapa-ayudante" class="mapa" role="region" aria-label="Punto de encuentro y ruta de asistencia"></div>
+        <button id="finalizar" class="principal" type="button">Finalizar asistencia</button>
+      </div>
+      <dialog id="solicitud-entrante" aria-labelledby="titulo-entrante">
+        <h2 id="titulo-entrante">¡Nueva solicitud de acompañamiento!</h2>
+        <dl id="resumen-entrante"></dl>
+        <p id="error-entrante" role="alert"></p>
+        <div class="acciones-ayudante">
+          <button id="aceptar" class="aceptar" type="button">Aceptar</button>
+          <button id="rechazar" class="rechazar" type="button">Rechazar</button>
+        </div>
+      </dialog>
+    </section>
+    <section id="vista-ranking" class="panel" hidden aria-labelledby="titulo-ranking">
+      <button id="volver-ayudante" class="opcion-seccion" type="button">Volver a Ayudante</button>
+      <h2 id="titulo-ranking" tabindex="-1">Ranking de ayudantes</h2>
+      <p class="nota">Cada estudiante concede de 1 a 5 puntos al calificar la ayuda.</p>
+      <ol id="ranking" class="ranking"></ol>
     </section>
   </main>
 </body>
