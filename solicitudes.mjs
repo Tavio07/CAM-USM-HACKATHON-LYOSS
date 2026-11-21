@@ -12,10 +12,10 @@ const TRANSICIONES = {
 };
 export const ETIQUETAS_CALIFICACION = ['Amable', 'Paciente', 'Puntual'];
 const BASE_RANKING = [
-  { nombre: 'Alma', puntajeTotal: 18, ayudasCompletadas: 4 },
-  { nombre: 'Diego', puntajeTotal: 16, ayudasCompletadas: 4 },
-  { nombre: 'Pepito', puntajeTotal: 14, ayudasCompletadas: 3 },
-  { nombre: 'Camila', puntajeTotal: 10, ayudasCompletadas: 3 },
+  { nombre: 'Alma Rojas', carrera: 'Ingeniería Civil', puntajeTotal: 49, ayudasCompletadas: 10 },
+  { nombre: 'Diego Muñoz', carrera: 'Ingeniería Informática', puntajeTotal: 38, ayudasCompletadas: 8 },
+  { nombre: 'Camila Soto', carrera: 'Arquitectura', puntajeTotal: 27, ayudasCompletadas: 6 },
+  { nombre: 'Matías Silva', carrera: 'Ingeniería Electrónica', puntajeTotal: 17, ayudasCompletadas: 4 },
 ];
 
 export function claveAyudante(nombre) {
@@ -27,7 +27,7 @@ function clavePerfil(ayudante) {
 }
 
 export function obtenerRanking(solicitudes) {
-  const filas = new Map(BASE_RANKING.map(ayudante => [clavePerfil(ayudante), { ...ayudante }]));
+  const filas = new Map();
   for (const { estado, ayudante, calificacion } of solicitudes) {
     const puntos = calificacion?.estrellas;
     if (estado !== 'completada' || !ayudante?.nombre || !Number.isInteger(puntos) || puntos < 1 || puntos > 5) continue;
@@ -38,8 +38,9 @@ export function obtenerRanking(solicitudes) {
     fila.ayudasCompletadas += 1;
     filas.set(clave, fila);
   }
-  return [...filas.values()].map(fila => ({ ...fila, promedio: fila.puntajeTotal / fila.ayudasCompletadas }))
-    .sort((a, b) => b.puntajeTotal - a.puntajeTotal || b.promedio - a.promedio || a.nombre.localeCompare(b.nombre, 'es'));
+  const ejemplos = filas.size < 4 ? BASE_RANKING : [];
+  return [...filas.values(), ...ejemplos].map(fila => ({ ...fila, promedio: fila.puntajeTotal / fila.ayudasCompletadas }))
+    .sort((a, b) => b.ayudasCompletadas - a.ayudasCompletadas || b.promedio - a.promedio || a.nombre.localeCompare(b.nombre, 'es'));
 }
 const oyentes = new Set();
 let modo;

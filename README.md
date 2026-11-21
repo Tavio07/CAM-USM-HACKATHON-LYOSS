@@ -44,10 +44,10 @@ La rúbrica evalúa **Impacto, Innovación, Ejecución y Funcionalidad, Presenta
 
 Abre dos pestañas independientes con la misma URL de Live Server. Ingresa con **Octavio Pereira** y ROL **202373501-2** en una, y con **Daniela Soto** y ROL **202411122-3** en la otra. Cada pestaña conserva su propia sesión al recargar.
 
-1. En la primera pestaña, elige **Necesito ayuda**, genera una ruta y pulsa **Solicitar Ayudante de Turno**. Puedes usar `?origen=p4` para precargar el piso 4 del Edificio P al entrar.
-2. En la segunda, elige **Quiero ayudar**. La solicitud muestra el nombre y ROL de Octavio. Pulsa **Aceptar** y luego **Finalizar asistencia**. Octavio verá que Daniela aceptó.
-3. En la primera, pulsa **Confirmar llegada**, elige cinco estrellas y envía la calificación. Las etiquetas y el comentario son opcionales.
-4. En la segunda, abre **Ranking**. Para un ROL nuevo, Daniela aparece con **5 puntos y 1 ayuda**. Los cuatro perfiles precargados sirven de referencia para la demo.
+1. En la primera pestaña, elige **Pedir ayuda**, genera una ruta y pulsa **Solicitar Ayudante de Turno**. Puedes usar `?origen=p4` para precargar el piso 4 del Edificio P al entrar.
+2. En la segunda, elige **Dar ayuda**. La solicitud muestra el nombre y ROL de Octavio. Pulsa **Aceptar** y luego **Finalizar asistencia**. Octavio verá que Daniela aceptó.
+3. En la primera, pulsa **Confirmar llegada**. Si quieres, añade una etiqueta o comentario y toca cinco estrellas para enviar la calificación de inmediato.
+4. En la segunda, abre **Ranking** en el encabezado. Para un ROL nuevo, Daniela aparece con **5 puntos y 1 ayuda**. Abre **Ver mi perfil** e **Historial de ayudas** desde la bandeja junto a su nombre para ver la misma actualización. Los perfiles de demostración sirven de referencia cuando hay pocas personas calificadas.
 
 **Dos teléfonos en la misma red Wi-Fi.** Ejecuta `py -3 servidor.py --host 0.0.0.0 --port 8000` en Windows o `python3 servidor.py --host 0.0.0.0 --port 8000` en macOS o Linux. Abre `http://IP_DEL_EQUIPO:8000/` en ambos teléfonos y usa nombres y ROL distintos. El puerto 8000 debe estar accesible desde ambos teléfonos.
 

@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#004B85">
   <title>CAE USM · Movilidad en Casa Central</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&amp;family=Plus+Jakarta+Sans:wght@500;600;700&amp;display=swap">
   <link rel="stylesheet" href="./campus.css">
   <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module" src="./app.mjs"></script>
@@ -15,9 +16,19 @@
     <h1>CAE <span>USM</span></h1>
     <span class="logo"><img src="./logo-usm.png" alt="Universidad Técnica Federico Santa María"></span>
     <div id="sesion-activa" class="sesion-activa" hidden>
-      <p><strong id="sesion-nombre"></strong><span id="sesion-rol"></span></p>
-      <button id="cambiar-seccion" type="button" hidden>Cambiar sección</button>
-      <button id="cerrar-sesion" type="button">Cerrar sesión</button>
+      <button id="abrir-ranking" class="control-cuenta" type="button" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 2.9 6.3 6.9.8-5.1 4.8 1.4 7L12 17.5 5.9 21l1.4-7L2.2 9.1l6.9-.8Z"/></svg>
+        Ranking
+      </button>
+      <button id="abrir-bandeja" class="control-cuenta" type="button" aria-expanded="false" aria-controls="bandeja-cuenta">
+        <span id="nombre-cuenta"></span><span aria-hidden="true">▾</span>
+      </button>
+      <nav id="bandeja-cuenta" class="bandeja-cuenta" aria-label="Información de cuenta" hidden>
+        <button id="abrir-perfil" type="button" aria-haspopup="dialog">Ver mi perfil</button>
+        <button id="abrir-historial" type="button" aria-haspopup="dialog">Historial de ayudas</button>
+        <button id="cambiar-seccion" type="button">Cambiar modo</button>
+        <button id="cerrar-sesion" type="button">Cerrar sesión</button>
+      </nav>
     </div>
   </header>
   <main>
@@ -34,9 +45,9 @@
     </section>
     <section id="elegir-seccion" class="panel acceso" hidden aria-labelledby="saludo">
       <h2 id="saludo" tabindex="-1"></h2>
-      <p>¿Qué necesitas hoy?</p>
-      <button id="necesito-ayuda" class="principal" type="button">Necesito ayuda</button>
-      <button id="quiero-ayudar" class="opcion-seccion" type="button">Quiero ayudar</button>
+      <p>¿Qué harás hoy?</p>
+      <button id="necesito-ayuda" class="principal" type="button">Pedir ayuda</button>
+      <button id="quiero-ayudar" class="opcion-seccion" type="button">Dar ayuda</button>
     </section>
     <p id="conexion" class="nota" role="status"></p>
     <p id="error-asistencia" role="alert"></p>
@@ -98,17 +109,16 @@
       <button id="confirmar-llegada" class="principal cierre" type="button" hidden>Confirmar llegada</button>
       <form id="calificacion" hidden>
         <fieldset>
-          <legend>Califica la calidad de la ayuda</legend>
-          <p id="puntos-estrellas">Cada estrella equivale a un punto para el ayudante.</p>
-          <div id="estrellas" class="estrellas" aria-describedby="puntos-estrellas"></div>
-        </fieldset>
-        <fieldset>
           <legend>¿Qué destacarías? <span class="nota">Opcional</span></legend>
           <div id="etiquetas-calificacion" class="etiquetas-calificacion"></div>
         </fieldset>
         <label for="comentario-calificacion">Comentario <span>Opcional</span></label>
         <textarea id="comentario-calificacion" name="comentario" rows="2" maxlength="200"></textarea>
-        <button id="enviar-calificacion" class="principal cierre" type="submit">Enviar calificación</button>
+        <fieldset>
+          <legend>Califica la calidad de la ayuda</legend>
+          <p id="puntos-estrellas">Toca una estrella para enviar tu calificación. Cada estrella suma un punto.</p>
+          <div id="estrellas" class="estrellas" aria-describedby="puntos-estrellas"></div>
+        </fieldset>
       </form>
       <button id="cancelar" type="button" hidden>Cancelar solicitud</button>
       <button id="cerrar-estado" type="button" hidden>Volver a las rutas</button>
@@ -116,7 +126,7 @@
     </div>
     <section id="vista-ayudante" class="panel" hidden aria-labelledby="titulo-ayudante">
       <h2 id="titulo-ayudante" tabindex="-1">Ayudante de turno</h2>
-      <button id="abrir-ranking" class="opcion-seccion" type="button">Ranking</button>
+
       <p id="estado-ayudante" role="status">Esperando solicitudes de acompañamiento.</p>
       <p id="aviso-puntos" class="aviso-puntos" role="status" hidden></p>
       <button id="ver-pendientes" class="principal" type="button" hidden>Ver solicitudes pendientes</button>
@@ -139,12 +149,13 @@
         </div>
       </dialog>
     </section>
-    <section id="vista-ranking" class="panel" hidden aria-labelledby="titulo-ranking">
-      <button id="volver-ayudante" class="opcion-seccion" type="button">Volver a Ayudante</button>
-      <h2 id="titulo-ranking" tabindex="-1">Ranking de ayudantes</h2>
-      <p class="nota">Cada estudiante concede de 1 a 5 puntos al calificar la ayuda.</p>
-      <ol id="ranking" class="ranking"></ol>
-    </section>
+    <dialog id="panel-cuenta" aria-labelledby="titulo-cuenta">
+      <div class="encabezado-panel-cuenta">
+        <h2 id="titulo-cuenta" tabindex="-1"></h2>
+        <button id="cerrar-panel-cuenta" type="button" aria-label="Cerrar panel">×</button>
+      </div>
+      <div id="contenido-cuenta"></div>
+    </dialog>
   </main>
 </body>
 </html>

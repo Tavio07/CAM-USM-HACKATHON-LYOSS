@@ -1,5 +1,6 @@
 import { CENTRO_CAMPUS, LIMITACIONES, LUGARES, ORIGENES_QR, buscarRutas } from './rutas.mjs';
-import { iniciarAsistencia, suscribirAsistencia, listarSolicitudes, prepararSolicitud, crearSolicitud, cambiarSolicitud, obtenerRanking, claveAyudante, ETIQUETAS_CALIFICACION } from './solicitudes.mjs';
+import { prepararCuenta } from './cuenta.mjs';
+import { iniciarAsistencia, suscribirAsistencia, listarSolicitudes, prepararSolicitud, crearSolicitud, cambiarSolicitud, claveAyudante, ETIQUETAS_CALIFICACION } from './solicitudes.mjs';
 
 const el = id => document.getElementById(id);
 const lugares = new Map(LUGARES.map(lugar => [lugar.id, lugar]));
@@ -20,7 +21,6 @@ let respondiendo = false;
 let listo = false;
 const CLAVE_SESION = 'cae-sesion-usm';
 let sesion = leerSesion();
-let rankingAbierto = false;
 let solicitudId = sesion ? sessionStorage.getItem(claveSolicitud()) : null;
 let qrAplicado = false;
 
@@ -283,11 +283,10 @@ function describirPunto(punto) {
 }
 
 const entrada = el('solicitud-entrante');
-const esAyudante = () => sesion?.modo === 'ayudante' && !rankingAbierto;
+const cuenta = prepararCuenta(renderizarSolicitudes);
+const esAyudante = () => sesion?.modo === 'ayudante';
 const esEstudiante = () => sesion?.modo === 'estudiante';
-const esRanking = () => sesion?.modo === 'ayudante' && rankingAbierto;
 const enCurso = solicitud => ['pendiente', 'aceptada', 'pendiente_confirmacion'].includes(solicitud?.estado);
-const formatoPromedio = new Intl.NumberFormat('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 let idCalificando;
 
 function resumir(id, solicitud) {
@@ -369,12 +368,11 @@ function mostrarSolicitud(propia) {
   el('confirmar-llegada').hidden = !pendiente || calificar;
   el('confirmar-llegada').disabled = enviando;
   el('calificacion').hidden = !calificar;
-  el('enviar-calificacion').disabled = enviando;
+  for (const estrella of el('estrellas').children) estrella.disabled = enviando;
   if (calificar && idCalificando !== propia.id) {
     idCalificando = propia.id;
     el('calificacion').reset();
-    el('estrellas').dataset.valor = '0';
-    el('puntos-estrellas').textContent = 'Cada estrella equivale a un punto para el ayudante.';
+
   }
   el('cancelar').hidden = propia.estado !== 'pendiente';
   el('cancelar').disabled = enviando;
@@ -388,40 +386,15 @@ function ultimaCalificacion(lista) {
       Date.parse(solicitud.calificacion.creadaEn) >= Date.parse(ultima.calificacion.creadaEn) ? solicitud : ultima, null);
 }
 
-function mostrarRanking(lista, reciente) {
-  if (!esRanking()) return;
-  el('ranking').replaceChildren(...obtenerRanking(lista).map((ayudante, indice) => {
-    const fila = document.createElement('li');
-    fila.className = 'fila-ranking';
-    fila.classList.toggle('ranking-activo', Boolean(reciente) && ayudante.rolUsm === sesion.rolUsm);
-    const posicion = document.createElement('span');
-    posicion.className = 'posicion';
-    posicion.textContent = '#' + (indice + 1);
-    const datos = document.createElement('div');
-    const nombre = document.createElement('strong');
-    nombre.textContent = ayudante.nombre;
-    if (ayudante.rolUsm) nombre.title = 'ROL ' + ayudante.rolUsm;
-    const resumen = document.createElement('small');
-    resumen.textContent = ayudante.ayudasCompletadas + (ayudante.ayudasCompletadas === 1 ? ' ayuda' : ' ayudas') +
-      ' · ★ ' + formatoPromedio.format(ayudante.promedio);
-    datos.append(nombre, resumen);
-    const puntaje = document.createElement('strong');
-    puntaje.className = 'puntaje';
-    puntaje.textContent = ayudante.puntajeTotal + ' pts';
-    fila.append(posicion, datos, puntaje);
-    return fila;
-  }));
-}
-
 function renderizarSolicitudes() {
   const lista = listarSolicitudes();
+  cuenta.actualizar(sesion, lista);
   if (esEstudiante()) {
     const propia = lista.find(solicitud => solicitud.id === solicitudId && solicitud.solicitante?.rolUsm === sesion.rolUsm);
     mostrarSolicitud(propia ?? (enviando ? borrador : undefined));
   }
-  const ultima = esAyudante() || esRanking() ? ultimaCalificacion(lista) : null;
+  const ultima = esAyudante() ? ultimaCalificacion(lista) : null;
   const reciente = ultima && Date.now() - Date.parse(ultima.calificacion.creadaEn) < 120000;
-  mostrarRanking(lista, reciente);
   if (!esAyudante()) {
     if (entrada.open) entrada.close();
     delete entrada.dataset.id;
@@ -463,7 +436,7 @@ function renderizarSolicitudes() {
     delete entrada.dataset.id;
     return;
   }
-  if (entrada.dataset.id !== nueva.id) {
+  if (!cuenta.abierta() && entrada.dataset.id !== nueva.id) {
     entrada.dataset.id = nueva.id;
     el('error-entrante').textContent = '';
     resumir('resumen-entrante', nueva);
@@ -473,17 +446,15 @@ function renderizarSolicitudes() {
 
 function cambiarVista() {
   el('inicio-sesion').hidden = Boolean(sesion);
-  el('sesion-activa').hidden = !sesion;
-  el('cambiar-seccion').hidden = !sesion?.modo;
+
   el('elegir-seccion').hidden = !sesion || Boolean(sesion.modo);
   el('vista-estudiante').hidden = !esEstudiante();
   el('vista-ayudante').hidden = !esAyudante();
-  el('vista-ranking').hidden = !esRanking();
+
   el('conexion').hidden = !sesion?.modo;
   el('error-asistencia').hidden = !sesion?.modo;
   if (sesion) {
-    el('sesion-nombre').textContent = sesion.nombre;
-    el('sesion-rol').textContent = 'ROL ' + sesion.rolUsm;
+
     el('saludo').textContent = 'Hola, ' + sesion.nombre;
   }
   idDibujado = undefined;
@@ -516,7 +487,6 @@ el('login').addEventListener('input', event => event.target.setCustomValidity(''
 function elegirSeccion(modo) {
   if (!sesion) return;
   sesion.modo = modo;
-  rankingAbierto = false;
   guardarSesion();
   cambiarVista();
   const titulo = el(modo === 'estudiante' ? 'titulo-filtros' : 'titulo-ayudante');
@@ -527,7 +497,6 @@ el('necesito-ayuda').addEventListener('click', () => elegirSeccion('estudiante')
 el('quiero-ayudar').addEventListener('click', () => elegirSeccion('ayudante'));
 el('cambiar-seccion').addEventListener('click', () => {
   sesion.modo = null;
-  rankingAbierto = false;
   guardarSesion();
   cambiarVista();
   el('saludo').focus();
@@ -538,7 +507,6 @@ el('cerrar-sesion').addEventListener('click', () => {
   solicitudId = undefined;
   asistenciaEnVista = undefined;
   idCalificando = undefined;
-  rankingAbierto = false;
   qrAplicado = false;
   el('login').reset();
   el('viaje').reset();
@@ -552,18 +520,6 @@ el('cerrar-sesion').addEventListener('click', () => {
   cambiarVista();
   el('titulo-login').focus();
 });
-el('abrir-ranking').addEventListener('click', () => {
-  if (!esAyudante()) return;
-  rankingAbierto = true;
-  cambiarVista();
-  el('titulo-ranking').focus();
-});
-el('volver-ayudante').addEventListener('click', () => {
-  rankingAbierto = false;
-  cambiarVista();
-  if (!entrada.open) el('abrir-ranking').focus();
-});
-
 async function ejecutar(operacion, errorId = 'error-asistencia') {
   el(errorId).textContent = '';
   try {
@@ -636,36 +592,32 @@ el('aceptar').addEventListener('click', () => responder('aceptar', entrada.datas
 el('rechazar').addEventListener('click', () => responder('rechazar', entrada.dataset.id, 'error-entrante'));
 el('finalizar').addEventListener('click', () => responder('finalizar', el('finalizar').dataset.id, 'error-asistencia'));
 
-function agregarOpcion(id, nombre, valor, tipo, etiqueta, accesible) {
-  const contenedor = el(id);
+for (let puntos = 1; puntos <= 5; puntos++) {
+  const boton = document.createElement('button');
+  boton.type = 'button';
+  boton.value = puntos;
+  boton.textContent = '★'.repeat(puntos);
+  boton.setAttribute('aria-label', 'Enviar ' + puntos + (puntos === 1 ? ' estrella' : ' estrellas'));
+  boton.addEventListener('click', async () => {
+    const datos = new FormData(el('calificacion'));
+    if (await cerrarComoEstudiante('calificar', {
+      estrellas: puntos,
+      etiquetas: datos.getAll('etiquetas'),
+      comentario: String(datos.get('comentario') ?? '').trim(),
+    })) el('titulo-solicitud').focus();
+  });
+  el('estrellas').append(boton);
+}
+
+for (const etiqueta of ETIQUETAS_CALIFICACION) {
   const fila = document.createElement('label');
   const control = document.createElement('input');
-  control.type = tipo;
-  control.name = nombre;
-  control.value = valor;
-  if (accesible) {
-    control.setAttribute('aria-label', accesible);
-    control.required = true;
-  }
-  const texto = document.createElement('span');
-  texto.textContent = etiqueta;
-  if (accesible) texto.setAttribute('aria-hidden', 'true');
-  fila.append(control, texto);
-  contenedor.append(fila);
+  control.type = 'checkbox';
+  control.name = 'etiquetas';
+  control.value = etiqueta;
+  fila.append(control, etiqueta);
+  el('etiquetas-calificacion').append(fila);
 }
-
-for (let estrella = 1; estrella <= 5; estrella++) {
-  agregarOpcion('estrellas', 'estrellas', estrella, 'radio', '★', estrella + (estrella === 1 ? ' estrella' : ' estrellas'));
-}
-for (const etiqueta of ETIQUETAS_CALIFICACION) {
-  agregarOpcion('etiquetas-calificacion', 'etiquetas', etiqueta, 'checkbox', etiqueta);
-}
-
-el('estrellas').addEventListener('change', event => {
-  const puntos = Number(event.target.value);
-  el('estrellas').dataset.valor = String(puntos);
-  el('puntos-estrellas').textContent = puntos + (puntos === 1 ? ' estrella = +1 punto' : ' estrellas = +' + puntos + ' puntos');
-});
 
 async function cerrarComoEstudiante(accion, datos) {
   if (!esEstudiante() || enviando || !solicitudId) return false;
@@ -678,18 +630,10 @@ async function cerrarComoEstudiante(accion, datos) {
 }
 
 el('confirmar-llegada').addEventListener('click', async () => {
-  if (await cerrarComoEstudiante('confirmar')) el('estrellas').querySelector('input').focus();
+  if (await cerrarComoEstudiante('confirmar')) el('estrellas').querySelector('button').focus();
 });
 
-el('calificacion').addEventListener('submit', async event => {
-  event.preventDefault();
-  const datos = new FormData(event.currentTarget);
-  if (await cerrarComoEstudiante('calificar', {
-    estrellas: Number(datos.get('estrellas')),
-    etiquetas: datos.getAll('etiquetas'),
-    comentario: String(datos.get('comentario') ?? '').trim(),
-  })) el('titulo-solicitud').focus();
-});
+el('calificacion').addEventListener('submit', event => event.preventDefault());
 
 el('viaje').addEventListener('input', () => {
   const seleccionadas = new Set(new FormData(el('viaje')).getAll('limitaciones'));

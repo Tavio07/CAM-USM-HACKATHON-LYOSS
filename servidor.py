@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent
 ARCHIVOS = {
     "/": "index.html", "/index.html": "index.html", "/ayudante": "index.html",
     "/app.mjs": "app.mjs", "/solicitudes.mjs": "solicitudes.mjs",
-    "/rutas.mjs": "rutas.mjs", "/campus.css": "campus.css", "/logo-usm.png": "logo-usm.png",
+    "/cuenta.mjs": "cuenta.mjs", "/rutas.mjs": "rutas.mjs", "/campus.css": "campus.css", "/logo-usm.png": "logo-usm.png",
 }
 API = "/api/solicitudes"
 SOLICITUDES = {}
