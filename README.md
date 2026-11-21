@@ -2,7 +2,50 @@
 
 Prototipo de movilidad y acompañamiento en la UTFSM Casa Central, Valparaíso. La app muestra rutas aproximadas, permite compartir incidencias del campus y conecta a quien necesita apoyo con una persona que puede acompañarla.
 
-## Cómo ejecutar la demo
+## Equipo
+
+- Octavio Pereira Navarro
+- Maximilaino Martinez
+- Dary Andaur
+
+## Problema y relación con el desafío
+
+En la UTFSM Casa Central, una escalera, un ascensor detenido o un acceso resbaloso pueden impedir que un estudiante complete un recorrido habitual. La dificultad concreta es saber, antes de salir, qué alternativas se ajustan a las necesidades de ese viaje y dónde pedir ayuda si las opciones disponibles quedan bloqueadas.
+
+## Solución propuesta
+
+CAM USM compara corredores precargados del campus según las necesidades y condiciones seleccionadas. Los reportes de la comunidad actualizan el mapa y la viabilidad de las rutas. Si hace falta acompañamiento, el estudiante puede compartir su punto de encuentro con un ayudante y confirmar la llegada al finalizar.
+
+## Funcionalidades implementadas
+
+- Acceso USM simulado y dos vistas para solicitar u ofrecer acompañamiento.
+- Selección de origen por mapa, lista o enlace QR, y comparación de rutas por semáforo y peso.
+- Reportes de lugar, tipo y duración, con historial personal y actualización automática del mapa al retirar o expirar un aviso.
+- Solicitud de asistencia, aceptación, doble confirmación de cierre y calificación con estrellas.
+- Perfil, historial de ayudas y ranking comunitario.
+
+## Tecnologías y dependencias
+
+| Componente | Tecnología |
+| --- | --- |
+| Interfaz | HTML5, CSS y JavaScript con módulos ES, sin framework ni etapa de compilación. |
+| Mapa | Leaflet 1.9.4 cargado desde el CDN unpkg y teselas de OpenStreetMap. |
+| Servidor | Python 3 con la biblioteca estándar. Sirve la aplicación y expone una API REST para el login simulado, solicitudes e incidencias. |
+| Sincronización | BroadcastChannel y localStorage entre pestañas. La API REST se consulta cada 1,5 segundos mientras la vista está visible en modo servidor. |
+| Datos | JSON para el catálogo y la configuración de la demo, más un archivo JSON local para persistir el estado del servidor. |
+
+## Recursos externos y atribuciones
+
+- [Leaflet](https://leafletjs.com/) para el mapa y sus capas. La versión 1.9.4 se carga desde [unpkg](https://unpkg.com/leaflet@1.9.4/dist/leaflet.js).
+- [OpenStreetMap y sus colaboradores](https://www.openstreetmap.org/copyright) para el mapa base.
+- [Google Fonts](https://fonts.google.com/) para las fuentes Inter y Plus Jakarta Sans.
+- [Fotografía de Casa Central de Alexxxos](https://commons.wikimedia.org/wiki/File:Central_Building,_Universidad_T%C3%A9cnica_Federico_Santa_Mar%C3%ADa,_Valpara%C3%ADso,_Chile.jpg), bajo [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
+
+## Uso de herramientas de IA
+
+Se utilizó **OpenAI Codex** durante el desarrollo. El asistente generó y refactorizó partes sustanciales del frontend, el motor de rutas y el servidor Python. También ayudó a integrar el mapa, la sincronización de solicitudes e incidencias, el historial y el ranking, a ejecutar pruebas de navegador y a redactar el README. El equipo proporcionó el contexto y los recorridos de Casa Central y definió los casos de uso del prototipo.
+
+## Instalación, configuración y ejecución
 
 ### Requisitos
 
